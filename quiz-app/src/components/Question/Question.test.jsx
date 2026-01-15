@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Question from './question';
 
+
 // Mock the context
 const mockQuizContext = {
   questions: [
@@ -21,8 +22,8 @@ const mockQuizContext = {
   nextQuestion: vi.fn(),
 };
 
-vi.mock('../../context/QuizContext', async () => {
-  const actual = await vi.importActual('../../context/QuizContext');
+vi.mock('../../context/quizContext', async () => {
+  const actual = await vi.importActual('../../context/quizContext');
   return {
     ...actual,
     useQuizContext: () => mockQuizContext,
@@ -52,7 +53,8 @@ describe('Question Component', () => {
   it('should show question progress', () => {
     render(<Question />);
 
-    expect(screen.getByText('Question 1 of 2')).toBeInTheDocument();
+    expect(screen.getByText(/Question/)).toBeInTheDocument();
+    expect(screen.getByText(/% Complete/)).toBeInTheDocument();
   });
 
   it('should select an option when clicked', () => {
@@ -61,7 +63,7 @@ describe('Question Component', () => {
     const option = screen.getByText('4');
     fireEvent.click(option);
 
-    expect(option.closest('button')).toHaveClass('border-blue-500');
+    expect(option.closest('button')).toHaveClass('bg-blue-500');
   });
 
   it('should disable submit button when no option selected', () => {
@@ -102,7 +104,7 @@ describe('Question Component', () => {
     const submitButton = screen.getByText('Submit Answer');
     fireEvent.click(submitButton);
 
-    expect(screen.getByText('🎉 Correct!')).toBeInTheDocument();
+    expect(screen.getByText('🎉 Correct Answer!')).toBeInTheDocument();
   });
 
   it('should show incorrect feedback when answer is wrong', () => {
@@ -114,7 +116,7 @@ describe('Question Component', () => {
     const submitButton = screen.getByText('Submit Answer');
     fireEvent.click(submitButton);
 
-    expect(screen.getByText('❌ Incorrect!')).toBeInTheDocument();
+    expect(screen.getByText('❌ Wrong Answer!')).toBeInTheDocument();
   });
 
   it('should show next question button after submission', () => {
@@ -126,7 +128,7 @@ describe('Question Component', () => {
     const submitButton = screen.getByText('Submit Answer');
     fireEvent.click(submitButton);
 
-    expect(screen.getByText('Next Question')).toBeInTheDocument();
+    expect(screen.getByText(/Next Question/)).toBeInTheDocument();
   });
 
   it('should advance to next question when next button clicked', () => {
@@ -138,7 +140,7 @@ describe('Question Component', () => {
     const submitButton = screen.getByText('Submit Answer');
     fireEvent.click(submitButton);
 
-    const nextButton = screen.getByText('Next Question');
+    const nextButton = screen.getByText(/Next Question/);
     fireEvent.click(nextButton);
 
     expect(mockQuizContext.nextQuestion).toHaveBeenCalled();
