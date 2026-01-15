@@ -62,9 +62,9 @@ describe('Quiz Component', () => {
     renderWithProvider(<Quiz />);
 
     const categorySelect = screen.getByLabelText(/category/i);
-    fireEvent.change(categorySelect, { target: { value: '9' } });
+    fireEvent.change(categorySelect, { target: { value: 'General Knowledge' } });
 
-    expect(categorySelect).toHaveValue('9');
+    expect(categorySelect).toHaveValue('General Knowledge');
   });
 
   it('should update difficulty select value', () => {
@@ -107,7 +107,7 @@ describe('Quiz Component', () => {
     fireEvent.change(amountInput, { target: { value: '5' } });
 
     const categorySelect = screen.getByLabelText(/category/i);
-    fireEvent.change(categorySelect, { target: { value: '9' } });
+    fireEvent.change(categorySelect, { target: { value: 'Science: Computers' } });
 
     const difficultySelect = screen.getByLabelText(/difficulty/i);
     fireEvent.change(difficultySelect, { target: { value: 'easy' } });
@@ -121,7 +121,7 @@ describe('Quiz Component', () => {
     
     expect(quizApi.fetchQuizQuestions).toHaveBeenCalledWith({
       numberOfQuestions: 5,
-      category: '9',
+      category: 'Science: Computers',
       difficulty: 'easy'
     });
   });
