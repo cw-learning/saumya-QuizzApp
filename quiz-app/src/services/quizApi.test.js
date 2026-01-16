@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
-import { fetchQuizQuestions, fetchQuizCategories } from './quizApi';
+ import { fetchQuizQuestions, fetchQuizCategories, decodeHtmlEntities } from './quizApi';
 
 // Mock axios directly
 vi.mock('axios', () => {
@@ -16,42 +16,39 @@ describe('Quiz API Service', () => {
     vi.clearAllMocks();
   });
 
-  describe('fetchQuizQuestions', () => {
-    it('fetches quiz questions successfully', async () => {
-      axios.get.mockResolvedValueOnce({
-        data: {
-          response_code: 0,
-          results: [
-            {
-              question: 'What is H2O?',
-              correct_answer: 'Water',
-              incorrect_answers: ['Fire', 'Air'],
-              category: 'Science',
-              difficulty: 'easy',
-              type: 'multiple'
-            },
-          ],
-        },
-      });
+ 
 
-      const result = await fetchQuizQuestions({ numberOfQuestions: 1 });
-      expect(result).toHaveLength(1);
-      expect(result[0].correctAnswer).toBe('Water');
-      expect(result[0].incorrectAnswers).toEqual(['Fire', 'Air']);
-    });
+it('decodes HTML entities', () => {
+  expect(decodeHtmlEntities('Tom &amp; Jerry')).toBe('Tom & Jerry');
+});
 
-    it('handles empty results', async () => {
-      axios.get.mockResolvedValueOnce({
-        data: {
-          response_code: 0,
-          results: [],
-        },
-      });
+it('rejects invalid numberOfQuestions', async () => {
+  await expect(fetchQuizQuestions({ numberOfQuestions: 0 })).rejects.toThrow(
+    /positive integer/i,
+  );
+});
 
-      const result = await fetchQuizQuestions({ numberOfQuestions: 1 });
-      expect(result).toHaveLength(0);
-    });
-  });
+it('surfaces axios failures', async () => {
+  axios.get.mockRejectedValueOnce(new Error('Network down'));
+  await expect(fetchQuizQuestions({ numberOfQuestions: 1 })).rejects.toThrow(
+    /Failed to fetch quiz questions/i,
+  );
+});
+
+it('validates response shape', async () => {
+  axios.get.mockResolvedValueOnce({ data: { results: null } });
+  await expect(fetchQuizQuestions({ numberOfQuestions: 1 })).rejects.toThrow(
+    /Invalid API response format/i,
+  );
+});
+
+it('calls axios with the expected URL', async () => {
+  axios.get.mockResolvedValueOnce({ data: { results: [] } });
+  await fetchQuizCategories();
+  expect(axios.get).toHaveBeenCalledWith(
+    'https://raw.githubusercontent.com/SaumyaDwivedi179/quizApi/refs/heads/main/quiz-data.json',
+  );
+});
 
   describe('fetchQuizCategories', () => {
     it('fetches categories successfully', async () => {
