@@ -1,9 +1,6 @@
 import axios from 'axios';
 
-const TRIVIA_API_BASE_URL =
-  import.meta.env.VITE_TRIVIA_API_BASE_URL ??
-  'https://raw.githubusercontent.com/SaumyaDwivedi179/quizApi/refs/heads/main/quiz-data.json';
-
+const QUIZ_URL = 'https://raw.githubusercontent.com/SaumyaDwivedi179/quizApi/refs/heads/main/quiz-data.json';
 
 export const decodeHtmlEntities = (text = '') => {
   const input = text == null ? '' : String(text);
@@ -14,15 +11,16 @@ export const decodeHtmlEntities = (text = '') => {
     return textArea.value;
   }
 
-  // Minimal non-DOM fallback (covers common + numeric entities)
+  // Correct numeric entity decoding in Node/SSR
   return input
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, num) => String.fromCodePoint(parseInt(num, 10)))
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+  .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+  .replace(/&#(\d+);/g, (_, num) => String.fromCodePoint(parseInt(num, 10)))
+  .replace(/&quot;/g, '"')
+  .replace(/&apos;/g, "'")
+  .replace(/&amp;/g, '&')
+  .replace(/&lt;/g, '<')
+  .replace(/&gt;/g, '>');
+
 };
 const shuffleArray = (array) => {
   const shuffled = [...array];
@@ -34,7 +32,6 @@ const shuffleArray = (array) => {
 };
 
 export const fetchQuizQuestions = async (options = {}) => {
-  try{
   const {
     numberOfQuestions = 10,
     category = '',
@@ -57,54 +54,58 @@ export const fetchQuizQuestions = async (options = {}) => {
     throw new Error('type must be one of: multiple, boolean');
   }
 
-  const response = await axios.get(TRIVIA_API_BASE_URL);
-  const results = response?.data?.results;
-  if (!Array.isArray(results)) {
-    throw new Error('Invalid API response format');
-  }
+  try {
+    const response = await axios.get(QUIZ_URL);
+    const results = response?.data?.results;
+    if (!Array.isArray(results)) {
+      throw new Error('Invalid API response format');
+    }
 
-  let questions = results;
-  if (category) {
-    questions = questions.filter((q) => decodeHtmlEntities(q.category) === category);
-  }
-  if (difficulty) {
-    questions = questions.filter((q) => q.difficulty === difficulty);
-  }
-  if (type) {
+    let questions = results;
+
+    if (category) {
+      questions = questions.filter(
+        (q) => decodeHtmlEntities(q.category) === category
+      );
+    }
+    if (difficulty) {
+      questions = questions.filter((q) => q.difficulty === difficulty);
+    }
+
+    // Filter by type exactly once
     questions = questions.filter((q) => q.type === type);
-  }
-    
-    questions = questions.filter(q => q.type === type);
 
     const shuffled = shuffleArray(questions);
     const limited = shuffled.slice(0, amount);
 
-    
-    
     return limited.map((q) => {
-  const question = decodeHtmlEntities(q.question);
-  const categoryName = decodeHtmlEntities(q.category);
+      const question = decodeHtmlEntities(q.question);
+      const categoryName = decodeHtmlEntities(q.category);
+      const correctAnswer = decodeHtmlEntities(q.correct_answer);
+      const incorrectAnswers = (q.incorrect_answers ?? []).map(decodeHtmlEntities);
 
       return {
-       id: `${categoryName}:${question}`,question,
-        correctAnswer: correct,
-        incorrectAnswers: incorrect,
-        allAnswers: shuffleArray([correct, ...incorrect]),
-        category: decodeHtmlEntities(q.category),
+        id: `${categoryName}:${question}`,
+        question,
+        correctAnswer,
+        incorrectAnswers,
+        allAnswers: shuffleArray([correctAnswer, ...incorrectAnswers]),
+        category: categoryName,
         difficulty: q.difficulty,
         type: q.type,
       };
     });
-  }  catch (err) {
-  const message = err instanceof Error ? err.message : String(err);
-  throw new Error(`Failed to fetch quiz questions: ${message}`, { cause: err });
-}
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Failed to fetch quiz questions: ${message}`, { cause: err });
+  }
 };
+
 
 
 export const fetchQuizCategories = async () => {
   try {
-    const response = await axios.get(TRIVIA_API_BASE_URL);
+    const response = await axios.get(QUIZ_URL);
     
     if (!response.data || !response.data.results) {
       throw new Error('Invalid API response format');
