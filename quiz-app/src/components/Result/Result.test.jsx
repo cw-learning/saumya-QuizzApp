@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Result from './Result';
 
-// Mock the QuizContext
+// Original mock
 const mockQuizContext = {
   questions: [
     { question: 'Q1' },
@@ -27,12 +27,17 @@ vi.mock('../../context/QuizContext', () => ({
 
 describe('Result Component', () => {
   beforeEach(() => {
+    
     vi.clearAllMocks();
+    mockQuizContext.score = 8;
+    mockQuizContext.resetQuiz = vi.fn();
   });
 
   it('renders score and total questions', () => {
     render(<Result />);
-    expect(screen.getByText(`${mockQuizContext.score} out of 10 questions answered correctly`)).toBeInTheDocument();
+    expect(
+      screen.getByText(`${mockQuizContext.score} out of 10 questions answered correctly`)
+    ).toBeInTheDocument();
   });
 
   it('renders correct percentage', () => {
@@ -55,6 +60,7 @@ describe('Result Component', () => {
   });
 
   it('shows "Perfect Score!" message for 100%', () => {
+  
     mockQuizContext.score = 10;
     render(<Result />);
     expect(screen.getByText('Perfect Score!')).toBeInTheDocument();
@@ -83,7 +89,6 @@ describe('Result Component', () => {
   });
 
   it('calls resetQuiz when retake button is clicked', () => {
-    mockQuizContext.score = 8;
     render(<Result />);
     const button = screen.getByRole('button', { name: /retake quiz/i });
     fireEvent.click(button);
@@ -91,7 +96,6 @@ describe('Result Component', () => {
   });
 
   it('renders the progress bar with correct width', () => {
-    mockQuizContext.score = 8;
     const { container } = render(<Result />);
     const progressBar = container.querySelector('[style*="width: 80%"]');
     expect(progressBar).toBeInTheDocument();

@@ -5,6 +5,7 @@ import QuizGrid from './QuizGrid';
 import * as QuizContext from '../../context/QuizContext';
 import * as quizApi from '../../services/quizApi';
 
+// Mock services and context
 vi.mock('../../services/quizApi');
 vi.mock('../../context/QuizContext', async () => {
   const actual = await vi.importActual('../../context/QuizContext');
@@ -97,7 +98,8 @@ const renderWithContext = (contextValue = {}) => {
 describe('QuizGrid Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    quizApi.decodeHtmlEntities = vi.fn((str) => str);
+    // ESM-safe mock for decodeHtmlEntities
+    vi.mocked(quizApi.decodeHtmlEntities).mockImplementation((str) => str);
   });
 
   it('should render the grid title', () => {
@@ -107,32 +109,26 @@ describe('QuizGrid Component', () => {
 
   it('should render AG Grid with correct data', () => {
     renderWithContext();
-    const grid = screen.getByTestId('ag-grid-mock');
-    expect(grid).toBeInTheDocument();
+    expect(screen.getByTestId('ag-grid-mock')).toBeInTheDocument();
   });
 
   it('should render all column headers', () => {
     renderWithContext();
-    expect(screen.getByText('Question')).toBeInTheDocument();
-    expect(screen.getByText('Your Answer')).toBeInTheDocument();
-    expect(screen.getByText('Correct Answer')).toBeInTheDocument();
-    expect(screen.getByText('Correct')).toBeInTheDocument();
-    expect(screen.getByText('Difficulty')).toBeInTheDocument();
+    ['Question', 'Your Answer', 'Correct Answer', 'Correct', 'Difficulty'].forEach((header) =>
+      expect(screen.getByText(header)).toBeInTheDocument()
+    );
   });
 
   it('should display questions in the grid', () => {
     renderWithContext();
-    expect(screen.getByText('What is 2+2?')).toBeInTheDocument();
-    expect(screen.getByText('What is the capital of France?')).toBeInTheDocument();
-    expect(screen.getByText('What is quantum mechanics?')).toBeInTheDocument();
+    mockQuestions.forEach((q) => expect(screen.getByText(q.question)).toBeInTheDocument());
   });
 
   it('should display user answers in the grid', () => {
     renderWithContext();
     expect(screen.getAllByText('4').length).toBeGreaterThan(0);
     expect(screen.getByText('London')).toBeInTheDocument();
-    const physicsTheoryElements = screen.getAllByText('Physics theory');
-    expect(physicsTheoryElements.length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Physics theory').length).toBeGreaterThan(0);
   });
 
   it('should display correct answers in the grid', () => {
@@ -142,49 +138,40 @@ describe('QuizGrid Component', () => {
 
   it('should display difficulty levels', () => {
     renderWithContext();
-    expect(screen.getByText('easy')).toBeInTheDocument();
-    expect(screen.getByText('medium')).toBeInTheDocument();
-    expect(screen.getByText('hard')).toBeInTheDocument();
+    ['easy', 'medium', 'hard'].forEach((level) => expect(screen.getByText(level)).toBeInTheDocument());
   });
 
   it('should show "✅ Yes" for correct answers', () => {
     renderWithContext();
-    const yesElements = screen.getAllByText('✅ Yes');
-    expect(yesElements.length).toBeGreaterThan(0);
+    expect(screen.getAllByText('✅ Yes').length).toBeGreaterThan(0);
   });
 
   it('should show "❌ No" for incorrect answers', () => {
     renderWithContext();
-    const noElements = screen.getAllByText('❌ No');
-    expect(noElements.length).toBeGreaterThan(0);
+    expect(screen.getAllByText('❌ No').length).toBeGreaterThan(0);
   });
 
   it('should render correct number of rows', () => {
     renderWithContext();
     const grid = screen.getByTestId('ag-grid-mock');
-    const rows = grid.querySelectorAll('tbody tr');
-    expect(rows).toHaveLength(3);
+    expect(grid.querySelectorAll('tbody tr')).toHaveLength(mockQuestions.length);
   });
 
   it('should handle empty questions array', () => {
     renderWithContext({ questions: [], userAnswers: [] });
     const grid = screen.getByTestId('ag-grid-mock');
-    const rows = grid.querySelectorAll('tbody tr');
-    expect(rows).toHaveLength(0);
+    expect(grid.querySelectorAll('tbody tr')).toHaveLength(0);
   });
 
   it('should handle missing user answers', () => {
-    renderWithContext({
-      questions: mockQuestions,
-      userAnswers: ['4'], // Only one answer
-    });
-    const grid = screen.getByTestId('ag-grid-mock');
-    expect(grid).toBeInTheDocument();
+    renderWithContext({ questions: mockQuestions, userAnswers: ['4'] });
+    expect(screen.getByTestId('ag-grid-mock')).toBeInTheDocument();
   });
 
   it('should decode HTML entities in questions', () => {
-    quizApi.decodeHtmlEntities = vi.fn((str) => str.replace('&amp;', '&'));
-    
+    // Override mock for this test only
+    vi.mocked(quizApi.decodeHtmlEntities).mockImplementation((str) => str.replace('&amp;', '&'));
+
     const questionsWithEntities = [
       {
         question: 'What is A &amp; B?',
@@ -203,61 +190,39 @@ describe('QuizGrid Component', () => {
   });
 
   it('should correctly identify correct answers', () => {
-    const questions = [
-      {
-        question: 'Test question',
-        correctAnswer: 'Correct',
-        incorrectAnswers: ['Wrong1', 'Wrong2'],
-        difficulty: 'easy',
-      },
-    ];
-
     renderWithContext({
-      questions,
+      questions: [
+        {
+          question: 'Test question',
+          correctAnswer: 'Correct',
+          incorrectAnswers: ['Wrong1', 'Wrong2'],
+          difficulty: 'easy',
+        },
+      ],
       userAnswers: ['Correct'],
     });
-
     expect(screen.getByText('✅ Yes')).toBeInTheDocument();
   });
 
   it('should correctly identify incorrect answers', () => {
-    const questions = [
-      {
-        question: 'Test question',
-        correctAnswer: 'Correct',
-        incorrectAnswers: ['Wrong1', 'Wrong2'],
-        difficulty: 'easy',
-      },
-    ];
-
     renderWithContext({
-      questions,
+      questions: [
+        {
+          question: 'Test question',
+          correctAnswer: 'Correct',
+          incorrectAnswers: ['Wrong1', 'Wrong2'],
+          difficulty: 'easy',
+        },
+      ],
       userAnswers: ['Wrong1'],
     });
-
     expect(screen.getByText('❌ No')).toBeInTheDocument();
   });
 
-  it('should apply correct column definitions', () => {
-    renderWithContext();
-    
-    // Check all required columns are present
-    expect(screen.getByText('Question')).toBeInTheDocument();
-    expect(screen.getByText('Your Answer')).toBeInTheDocument();
-    expect(screen.getByText('Correct Answer')).toBeInTheDocument();
-    expect(screen.getByText('Correct')).toBeInTheDocument();
-    expect(screen.getByText('Difficulty')).toBeInTheDocument();
-  });
-
-  it('should render with ag-theme-alpine class', () => {
+  it('should render with ag-theme-alpine class and correct height', () => {
     const { container } = renderWithContext();
     const themeDiv = container.querySelector('.ag-theme-alpine');
     expect(themeDiv).toBeInTheDocument();
-  });
-
-  it('should have correct height styling', () => {
-    const { container } = renderWithContext();
-    const themeDiv = container.querySelector('.ag-theme-alpine');
     expect(themeDiv).toHaveStyle({ height: '600px' });
   });
 });

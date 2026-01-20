@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuizContext } from '../../context/QuizContext';
 
-
 const decodeHtmlEntities = (value = '') => {
   const textarea = document.createElement('textarea');
   textarea.innerHTML = String(value);
@@ -34,12 +33,9 @@ export default function Question() {
   useEffect(() => {
     if (!currentQuestion) return;
 
-    const correct =
-      currentQuestion.correctAnswer ?? currentQuestion.correct_answer;
+    const correct = currentQuestion.correctAnswer ?? currentQuestion.correct_answer;
     const incorrect =
-      currentQuestion.incorrectAnswers ??
-      currentQuestion.incorrect_answers ??
-      [];
+      currentQuestion.incorrectAnswers ?? currentQuestion.incorrect_answers ?? [];
 
     const options = [correct, ...incorrect].filter(Boolean);
 
@@ -61,8 +57,13 @@ export default function Question() {
   };
 
   const isCorrect =
-    selectedOption ===
-    (currentQuestion.correctAnswer ?? currentQuestion.correct_answer);
+    selectedOption === (currentQuestion.correctAnswer ?? currentQuestion.correct_answer);
+
+  // Extracted button label for readability
+  const nextButtonLabel =
+    currentQuestionIndex === questions.length - 1
+      ? '📊 View Results'
+      : 'Next Question ➡️';
 
   return (
     <div className="w-full max-w-2xl mx-auto p-6">
@@ -76,9 +77,7 @@ export default function Question() {
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{
-                width: `${
-                  ((currentQuestionIndex + 1) / questions.length) * 100
-                }%`,
+                width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
               }}
             />
           </div>
@@ -93,9 +92,7 @@ export default function Question() {
         {shuffledOptions.map((option) => {
           const isSelected = selectedOption === option;
           const isCorrectOption =
-            option ===
-            (currentQuestion.correctAnswer ??
-              currentQuestion.correct_answer);
+            option === (currentQuestion.correctAnswer ?? currentQuestion.correct_answer);
 
           let optionClasses =
             'w-full p-4 text-left border-2 rounded-lg transition-all duration-200 ';
@@ -105,8 +102,7 @@ export default function Question() {
               ? 'border-blue-500 bg-blue-50 text-blue-900'
               : 'border-gray-300 hover:border-blue-300 hover:bg-gray-50';
           } else if (isCorrectOption) {
-            optionClasses +=
-              'border-green-500 bg-green-50 text-green-900';
+            optionClasses += 'border-green-500 bg-green-50 text-green-900';
           } else if (isSelected && !isCorrect) {
             optionClasses += 'border-red-500 bg-red-50 text-red-900';
           } else {
@@ -123,12 +119,8 @@ export default function Question() {
               <div className="flex items-center justify-between">
                 <span>{decodeHtmlEntities(option)}</span>
 
-                {showFeedback && isCorrectOption && (
-                  <span className="text-green-600">✓</span>
-                )}
-                {showFeedback && isSelected && !isCorrect && (
-                  <span className="text-red-600">✗</span>
-                )}
+                {showFeedback && isCorrectOption && <span className="text-green-600">✓</span>}
+                {showFeedback && isSelected && !isCorrect && <span className="text-red-600">✗</span>}
               </div>
             </button>
           );
@@ -153,9 +145,7 @@ export default function Question() {
         <div className="space-y-4">
           <div
             className={`p-4 rounded-lg text-center font-semibold ${
-              isCorrect
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
+              isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
             }`}
           >
             {isCorrect ? '🎉 Correct!' : '❌ Incorrect!'}
@@ -165,7 +155,7 @@ export default function Question() {
             onClick={nextQuestion}
             className="w-full py-3 px-6 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200"
           >
-            {currentQuestionIndex === questions.length - 1 ? '📊 View Results' : 'Next Question ➡️'}
+            {nextButtonLabel}
           </button>
         </div>
       )}
