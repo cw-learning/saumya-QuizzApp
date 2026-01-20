@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Question from './question';
+import Question from './Question';
 
 // Mock the context
 const mockQuizContext = {
