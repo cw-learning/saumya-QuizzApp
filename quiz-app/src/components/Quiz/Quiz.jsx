@@ -125,7 +125,7 @@ const Quiz = () => {
                   Number of Questions
                 </label>
                 <input
-                  type="text"
+                  type="number"
                   id="amount"
                   name="amount"
                   value={values.amount}

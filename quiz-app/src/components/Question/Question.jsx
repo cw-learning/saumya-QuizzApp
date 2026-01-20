@@ -165,7 +165,7 @@ export default function Question() {
             onClick={nextQuestion}
             className="w-full py-3 px-6 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200"
           >
-            Next Question
+            {currentQuestionIndex === questions.length - 1 ? '📊 View Results' : 'Next Question ➡️'}
           </button>
         </div>
       )}

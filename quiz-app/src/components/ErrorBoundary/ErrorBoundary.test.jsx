@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { useState } from 'react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ErrorBoundary from './ErrorBoundary';
-
 
 const ThrowError = ({ shouldThrow }) => {
   if (shouldThrow) {
@@ -11,19 +10,7 @@ const ThrowError = ({ shouldThrow }) => {
   return <div>No error</div>;
 };
 
-const ConditionalError = () => {
-  const [shouldThrow, setShouldThrow] = useState(true);
-
-  return (
-    <div>
-      <button onClick={() => setShouldThrow(false)}>Fix Error</button>
-      <ThrowError shouldThrow={shouldThrow} />
-    </div>
-  );
-};
-
 describe('ErrorBoundary', () => {
-
   const originalError = console.error;
   beforeAll(() => {
     console.error = vi.fn();
@@ -39,7 +26,6 @@ describe('ErrorBoundary', () => {
         <div>Test Content</div>
       </ErrorBoundary>
     );
-
     expect(screen.getByText('Test Content')).toBeInTheDocument();
   });
 
@@ -49,7 +35,6 @@ describe('ErrorBoundary', () => {
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
-
     expect(screen.getByText('Oops! Something went wrong')).toBeInTheDocument();
     expect(
       screen.getByText("We're sorry for the inconvenience. An unexpected error has occurred.")
@@ -62,7 +47,6 @@ describe('ErrorBoundary', () => {
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
-
     expect(screen.getByText('⚠️')).toBeInTheDocument();
   });
 
@@ -72,17 +56,13 @@ describe('ErrorBoundary', () => {
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
-
-    const button = screen.getByRole('button', { name: /try again/i });
-    expect(button).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
   });
 
-  it('should reset error state when "Try Again" is clicked', () => {
+  it('should reset error state when "Try Again" is clicked', async () => {
     let throwError = true;
     const TestComponent = () => {
-      if (throwError) {
-        throw new Error('Test error');
-      }
+      if (throwError) throw new Error('Test error');
       return <div>No error</div>;
     };
 
@@ -97,10 +77,9 @@ describe('ErrorBoundary', () => {
     // Fix the error condition
     throwError = false;
 
-    const button = screen.getByRole('button', { name: /try again/i });
-    fireEvent.click(button);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /try again/i }));
 
-    // After clicking "Try Again", component should re-render without error
     expect(screen.getByText('No error')).toBeInTheDocument();
   });
 
@@ -111,7 +90,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
 
-    expect(screen.queryByText('Test error')).not.toBeInTheDocument(); // Error details shown only in dev mode
+    expect(screen.queryByText('Test error')).not.toBeInTheDocument(); // Only shown in dev mode
     expect(screen.getByText('Oops! Something went wrong')).toBeInTheDocument();
   });
 
@@ -121,7 +100,6 @@ describe('ErrorBoundary', () => {
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
-
     expect(screen.queryByText('No error')).not.toBeInTheDocument();
   });
 });
