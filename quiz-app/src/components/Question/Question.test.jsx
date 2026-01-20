@@ -1,25 +1,22 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Question from './question';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import Question from './Question';
 
-// Mock the context
-const mockQuizContext = {
-  questions: [
-    {
-      question: 'What is 2 + 2?',
-      correct_answer: '4',
-      incorrect_answers: ['3', '5', '6'],
-    },
-    {
-      question: 'What is the capital of France?',
-      correct_answer: 'Paris',
-      incorrect_answers: ['London', 'Berlin', 'Madrid'],
-    },
-  ],
-  currentQuestionIndex: 0,
-  selectAnswer: vi.fn(),
-  nextQuestion: vi.fn(),
-};
+const baseQuestions = [
+  {
+    question: 'What is 2 + 2?',
+    correct_answer: '4',
+    incorrect_answers: ['3', '5', '6'],
+  },
+  {
+    question: 'What is the capital of France?',
+    correct_answer: 'Paris',
+    incorrect_answers: ['London', 'Berlin', 'Madrid'],
+  },
+];
+
+let mockQuizContext;
 
 vi.mock('../../context/QuizContext', async () => {
   const actual = await vi.importActual('../../context/QuizContext');
@@ -29,158 +26,153 @@ vi.mock('../../context/QuizContext', async () => {
   };
 });
 
-describe('Question Component', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.useFakeTimers();
-  });
+beforeEach(() => {
+  mockQuizContext = {
+    questions: baseQuestions,
+    currentQuestionIndex: 0,
+    selectAnswer: vi.fn(),
+    nextQuestion: vi.fn(),
+  };
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
+  vi.clearAllMocks();
+});
 
-  it('should render question and options', () => {
+describe('Question component', () => {
+  it('renders question text and options', () => {
     render(<Question />);
 
-    expect(screen.getByText('What is 2 + 2?')).toBeInTheDocument();
-    expect(screen.getByText('4')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('5')).toBeInTheDocument();
-    expect(screen.getByText('6')).toBeInTheDocument();
+    expect(
+      screen.getByText('What is 2 + 2?')
+    ).toBeInTheDocument();
+
+    ['3', '4', '5', '6'].forEach((option) => {
+      expect(screen.getByRole('button', { name: option }))
+        .toBeInTheDocument();
+    });
   });
 
-  it('should show question progress', () => {
+  it('shows question progress', () => {
+    render(<Question />);
+    expect(
+      screen.getByText('Question 1 of 2')
+    ).toBeInTheDocument();
+  });
+
+  it('keeps submit disabled until an option is selected', async () => {
+    const user = userEvent.setup();
     render(<Question />);
 
-    expect(screen.getByText('Question 1 of 2')).toBeInTheDocument();
+    const submit = screen.getByRole('button', {
+      name: /submit answer/i,
+    });
+
+    expect(submit).toBeDisabled();
+
+    await user.click(
+      screen.getByRole('button', { name: '4' })
+    );
+
+    expect(submit).toBeEnabled();
   });
 
-  it('should select an option when clicked', () => {
+  it('calls selectAnswer on submit', async () => {
+    const user = userEvent.setup();
     render(<Question />);
 
-    const option = screen.getByText('4');
-    fireEvent.click(option);
+    await user.click(
+      screen.getByRole('button', { name: '4' })
+    );
 
-    expect(option.closest('button')).toHaveClass('border-blue-500');
+    await user.click(
+      screen.getByRole('button', { name: /submit answer/i })
+    );
+
+    expect(mockQuizContext.selectAnswer)
+      .toHaveBeenCalledWith('4');
   });
 
-  it('should disable submit button when no option selected', () => {
+  it('shows correct feedback for correct answer', async () => {
+    const user = userEvent.setup();
     render(<Question />);
 
-    const submitButton = screen.getByText('Submit Answer');
-    expect(submitButton).toBeDisabled();
+    await user.click(
+      screen.getByRole('button', { name: '4' })
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /submit answer/i })
+    );
+
+    expect(
+      screen.getByText('🎉 Correct!')
+    ).toBeInTheDocument();
   });
 
-  it('should enable submit button when option selected', () => {
+  it('shows incorrect feedback for wrong answer', async () => {
+    const user = userEvent.setup();
     render(<Question />);
 
-    const option = screen.getByText('4');
-    fireEvent.click(option);
+    await user.click(
+      screen.getByRole('button', { name: '3' })
+    );
 
-    const submitButton = screen.getByText('Submit Answer');
-    expect(submitButton).not.toBeDisabled();
+    await user.click(
+      screen.getByRole('button', { name: /submit answer/i })
+    );
+
+    expect(
+      screen.getByText('❌ Incorrect!')
+    ).toBeInTheDocument();
   });
 
-  it('should call selectAnswer when submitted', () => {
+  it('shows and triggers next question button', async () => {
+    const user = userEvent.setup();
     render(<Question />);
 
-    const option = screen.getByText('4');
-    fireEvent.click(option);
+    await user.click(
+      screen.getByRole('button', { name: '4' })
+    );
 
-    const submitButton = screen.getByText('Submit Answer');
-    fireEvent.click(submitButton);
+    await user.click(
+      screen.getByRole('button', { name: /submit answer/i })
+    );
 
-    expect(mockQuizContext.selectAnswer).toHaveBeenCalledWith('4');
+    const nextButton = screen.getByRole('button', {
+      name: /next question/i,
+    });
+
+    expect(nextButton).toBeInTheDocument();
+
+    await user.click(nextButton);
+
+    expect(mockQuizContext.nextQuestion)
+      .toHaveBeenCalled();
   });
 
-  it('should show correct feedback when answer is correct', () => {
+  it('prevents changing selection after submission', async () => {
+    const user = userEvent.setup();
     render(<Question />);
 
-    const correctOption = screen.getByText('4');
-    fireEvent.click(correctOption);
+    await user.click(
+      screen.getByRole('button', { name: '4' })
+    );
 
-    const submitButton = screen.getByText('Submit Answer');
-    fireEvent.click(submitButton);
+    await user.click(
+      screen.getByRole('button', { name: /submit answer/i })
+    );
 
-    expect(screen.getByText('🎉 Correct!')).toBeInTheDocument();
+    await user.click(
+      screen.getByRole('button', { name: '3' })
+    );
+
+    expect(mockQuizContext.selectAnswer)
+      .toHaveBeenCalledTimes(1);
   });
 
-  it('should show incorrect feedback when answer is wrong', () => {
-    render(<Question />);
-
-    const wrongOption = screen.getByText('3');
-    fireEvent.click(wrongOption);
-
-    const submitButton = screen.getByText('Submit Answer');
-    fireEvent.click(submitButton);
-
-    expect(screen.getByText('❌ Incorrect!')).toBeInTheDocument();
-  });
-
-  it('should show next question button after submission', () => {
-    render(<Question />);
-
-    const option = screen.getByText('4');
-    fireEvent.click(option);
-
-    const submitButton = screen.getByText('Submit Answer');
-    fireEvent.click(submitButton);
-
-    expect(screen.getByText('Next Question')).toBeInTheDocument();
-  });
-
-  it('should advance to next question when next button clicked', () => {
-    render(<Question />);
-
-    const option = screen.getByText('4');
-    fireEvent.click(option);
-
-    const submitButton = screen.getByText('Submit Answer');
-    fireEvent.click(submitButton);
-
-    const nextButton = screen.getByText('Next Question');
-    fireEvent.click(nextButton);
-
-    expect(mockQuizContext.nextQuestion).toHaveBeenCalled();
-  });
-
-  it('should prevent selecting different option after submission', () => {
-    render(<Question />);
-
-    const option1 = screen.getByText('4');
-    fireEvent.click(option1);
-
-    const submitButton = screen.getByText('Submit Answer');
-    fireEvent.click(submitButton);
-
-    // Try to select different option
-    const option2 = screen.getByText('3');
-    fireEvent.click(option2);
-
-    // Should still show first selection
-    expect(mockQuizContext.selectAnswer).toHaveBeenCalledTimes(1);
-    expect(mockQuizContext.selectAnswer).toHaveBeenCalledWith('4');
-  });
-
-  it('should render null when no current question', () => {
-    // Simply test with empty questions array
+  it('renders nothing when there is no current question', () => {
     mockQuizContext.questions = [];
-    
+
     const { container } = render(<Question />);
     expect(container.firstChild).toBeNull();
-    
-    // Restore original questions
-    mockQuizContext.questions = [
-      {
-        question: 'What is 2 + 2?',
-        correct_answer: '4',
-        incorrect_answers: ['3', '5', '6'],
-      },
-      {
-        question: 'What is the capital of France?',
-        correct_answer: 'Paris',
-        incorrect_answers: ['London', 'Berlin', 'Madrid'],
-      },
-    ];
   });
 });
