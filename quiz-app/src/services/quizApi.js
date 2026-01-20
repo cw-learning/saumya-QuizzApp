@@ -1,9 +1,6 @@
 import axios from 'axios';
 
-const QUIZ_URL =
-  import.meta.env.VITE_QUIZ_API_URL ||
-  'https://raw.githubusercontent.com/SaumyaDwivedi179/quizApi/refs/heads/main/quiz-data.json';
-
+const QUIZ_URL = 'https://raw.githubusercontent.com/SaumyaDwivedi179/quizApi/refs/heads/main/quiz-data.json';
 
 export const decodeHtmlEntities = (text = '') => {
   const input = text == null ? '' : String(text);
@@ -14,22 +11,17 @@ export const decodeHtmlEntities = (text = '') => {
     return textArea.value;
   }
 
-  // Non-DOM fallback (SSR/Node)
+  // Correct numeric entity decoding in Node/SSR
   return input
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
-      String.fromCodePoint(parseInt(hex, 16))
-    )
-    .replace(/&#(\d+);/g, (_, num) =>
-      String.fromCodePoint(parseInt(num, 10))
-    )
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+  .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+  .replace(/&#(\d+);/g, (_, num) => String.fromCodePoint(parseInt(num, 10)))
+  .replace(/&quot;/g, '"')
+  .replace(/&apos;/g, "'")
+  .replace(/&amp;/g, '&')
+  .replace(/&lt;/g, '<')
+  .replace(/&gt;/g, '>');
+
 };
-
-
 const shuffleArray = (array) => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -59,39 +51,34 @@ export const fetchQuizQuestions = async (options = {}) => {
   }
 
   const allowedTypes = new Set(['multiple', 'boolean']);
-  if (!allowedTypes.has(type)) {
+  if (type && !allowedTypes.has(type)) {
     throw new Error('type must be one of: multiple, boolean');
   }
 
   try {
     const response = await axios.get(QUIZ_URL);
     const results = response?.data?.results;
-
     if (!Array.isArray(results)) {
       throw new Error('Invalid API response format');
     }
 
     let questions = results;
 
-    // Filter by category
     if (category) {
       questions = questions.filter(
         (q) => decodeHtmlEntities(q.category) === category
       );
     }
-
-    // Filter by difficulty
     if (difficulty) {
       questions = questions.filter((q) => q.difficulty === difficulty);
     }
 
-    // Filter by type (only once)
+    // Filter by type exactly once
     questions = questions.filter((q) => q.type === type);
 
     // Limit number of questions
     const limited = shuffleArray(questions).slice(0, amount);
 
-    // Map to normalized structure
     return limited.map((q) => {
       const question = decodeHtmlEntities(q.question);
       const categoryName = decodeHtmlEntities(q.category);
@@ -115,15 +102,13 @@ export const fetchQuizQuestions = async (options = {}) => {
   }
 };
 
-/**
- * Fetch unique quiz categories.
- */
+
+
 export const fetchQuizCategories = async () => {
   try {
     const response = await axios.get(QUIZ_URL);
-    const results = response?.data?.results;
-
-    if (!Array.isArray(results)) {
+    
+    if (!response.data || !response.data.results) {
       throw new Error('Invalid API response format');
     }
 
