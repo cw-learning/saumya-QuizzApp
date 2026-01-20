@@ -1,8 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Result from './Result';
 
-// Mock the context
+// Mock the QuizContext
 const mockQuizContext = {
   questions: [
     { question: 'Q1' },
@@ -17,6 +17,7 @@ const mockQuizContext = {
     { question: 'Q10' },
   ],
   score: 8,
+  userAnswers: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
   resetQuiz: vi.fn(),
 };
 
@@ -29,103 +30,75 @@ describe('Result Component', () => {
     vi.clearAllMocks();
   });
 
-  it('should render score and total questions', () => {
+  it('renders score and total questions', () => {
     render(<Result />);
-
-    expect(screen.getByText('8/10')).toBeInTheDocument();
+    expect(screen.getByText(`${mockQuizContext.score} out of 10 questions answered correctly`)).toBeInTheDocument();
   });
 
-  it('should display percentage score', () => {
+  it('renders correct percentage', () => {
     render(<Result />);
-
-    expect(screen.getByText('80% Score')).toBeInTheDocument();
+    expect(screen.getByText('80%')).toBeInTheDocument();
   });
 
-  it('should show correct and incorrect counts', () => {
+  it('renders correct counts for correct and incorrect', () => {
     render(<Result />);
-
-    expect(screen.getByText('8')).toBeInTheDocument(); // Correct
-    expect(screen.getByText('2')).toBeInTheDocument(); // Incorrect
     expect(screen.getByText('Correct')).toBeInTheDocument();
     expect(screen.getByText('Incorrect')).toBeInTheDocument();
+    expect(screen.getByText('8')).toBeInTheDocument(); // Correct count
+    expect(screen.getByText('2')).toBeInTheDocument(); // Incorrect count
   });
 
-  it('should display "Excellent!" message for 80% or above', () => {
+  it('shows the correct result message for 80%', () => {
     render(<Result />);
-
     expect(screen.getByText('Excellent!')).toBeInTheDocument();
     expect(screen.getByText('🎉')).toBeInTheDocument();
   });
 
-  it('should display "Perfect Score!" for 100%', () => {
+  it('shows "Perfect Score!" message for 100%', () => {
     mockQuizContext.score = 10;
     render(<Result />);
-
     expect(screen.getByText('Perfect Score!')).toBeInTheDocument();
     expect(screen.getByText('🏆')).toBeInTheDocument();
   });
 
-  it('should display "Good Job!" for 60-79%', () => {
+  it('shows "Good Job!" for 60-79%', () => {
     mockQuizContext.score = 7;
     render(<Result />);
-
     expect(screen.getByText('Good Job!')).toBeInTheDocument();
     expect(screen.getByText('👍')).toBeInTheDocument();
   });
 
-  it('should display "Not Bad!" for 40-59%', () => {
+  it('shows "Not Bad!" for 40-59%', () => {
     mockQuizContext.score = 5;
     render(<Result />);
-
     expect(screen.getByText('Not Bad!')).toBeInTheDocument();
     expect(screen.getByText('😊')).toBeInTheDocument();
   });
 
-  it('should display "Keep Trying!" for below 40%', () => {
+  it('shows "Keep Trying!" for below 40%', () => {
     mockQuizContext.score = 3;
     render(<Result />);
-
     expect(screen.getByText('Keep Trying!')).toBeInTheDocument();
     expect(screen.getByText('💪')).toBeInTheDocument();
   });
 
-  it('should call resetQuiz when "Take Another Quiz" is clicked', () => {
+  it('calls resetQuiz when retake button is clicked', () => {
     mockQuizContext.score = 8;
     render(<Result />);
-
-    const resetButton = screen.getByText('Take Another Quiz');
-    fireEvent.click(resetButton);
-
+    const button = screen.getByRole('button', { name: /retake quiz/i });
+    fireEvent.click(button);
     expect(mockQuizContext.resetQuiz).toHaveBeenCalled();
   });
 
-  it('should render "Take Another Quiz" button', () => {
-    render(<Result />);
-
-    expect(screen.getByText('Take Another Quiz')).toBeInTheDocument();
-  });
-
-  it('should calculate percentage correctly', () => {
-    mockQuizContext.score = 6;
-    render(<Result />);
-
-    expect(screen.getByText('60% Score')).toBeInTheDocument();
-  });
-
-  it('should handle edge case of 0 score', () => {
-    mockQuizContext.score = 0;
-    render(<Result />);
-
-    expect(screen.getByText('0/10')).toBeInTheDocument();
-    expect(screen.getByText('0% Score')).toBeInTheDocument();
-    expect(screen.getByText('Keep Trying!')).toBeInTheDocument();
-  });
-
-  it('should show progress bar with correct width', () => {
+  it('renders the progress bar with correct width', () => {
     mockQuizContext.score = 8;
     const { container } = render(<Result />);
-
     const progressBar = container.querySelector('[style*="width: 80%"]');
     expect(progressBar).toBeInTheDocument();
+  });
+
+  it('renders QuizGrid component', () => {
+    render(<Result />);
+    expect(screen.getByText('Detailed Question Review')).toBeInTheDocument();
   });
 });

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Quiz from './Quiz';
-import { QuizProvider } from '../../context/quizContext';
+import { QuizProvider } from '../../context/QuizContext';
 import * as quizApi from '../../services/quizApi';
 
 vi.mock('../../services/quizApi');
