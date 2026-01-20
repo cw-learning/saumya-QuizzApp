@@ -26,8 +26,6 @@ class ErrorBoundary extends Component {
       console.error('Error caught by boundary:', error, errorInfo);
     }
 
-    // Here you could send error to logging service
-    // logErrorToService(error, errorInfo);
   }
 
   handleReset = () => {

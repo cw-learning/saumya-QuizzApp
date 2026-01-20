@@ -1,7 +1,7 @@
-import { createContext, useContext, useReducer, useCallback } from 'react';
+import { createContext, useContext, useReducer, useCallback, useMemo } from 'react';
 import { fetchQuizQuestions } from '../services/quizApi';
 
-const QuizContext = createContext();
+const QuizContext = createContext(null);
 
 // Quiz states
 const QUIZ_ACTIONS = {
@@ -13,7 +13,8 @@ const QUIZ_ACTIONS = {
   RESET_QUIZ: 'RESET_QUIZ',
 };
 
-const initialState = {
+// Initial state factory
+const getInitialState = () => ({
   questions: [],
   currentQuestionIndex: 0,
   score: 0,
@@ -21,8 +22,11 @@ const initialState = {
   isLoading: false,
   error: null,
   isQuizComplete: false,
-};
+});
 
+const initialState = getInitialState();
+
+// Reducer
 function quizReducer(state, action) {
   switch (action.type) {
     case QUIZ_ACTIONS.SET_LOADING:
@@ -32,13 +36,18 @@ function quizReducer(state, action) {
         error: null,
       };
 
-    case QUIZ_ACTIONS.SET_QUESTIONS:
+    case QUIZ_ACTIONS.SET_QUESTIONS: {
       return {
         ...state,
         questions: action.payload,
+        currentQuestionIndex: 0,
+        score: 0,
+        userAnswers: [],
+        isQuizComplete: false,
         isLoading: false,
         error: null,
       };
+    }
 
     case QUIZ_ACTIONS.SET_ERROR:
       return {
@@ -47,49 +56,63 @@ function quizReducer(state, action) {
         isLoading: false,
       };
 
-    case QUIZ_ACTIONS.SELECT_ANSWER:
+    case QUIZ_ACTIONS.SELECT_ANSWER: {
       const currentQuestion = state.questions[state.currentQuestionIndex];
-      const isCorrect = action.payload === (currentQuestion?.correctAnswer || currentQuestion?.correct_answer);
-      return {
-        ...state,
-        userAnswers: [...state.userAnswers, action.payload],
-        score: isCorrect ? state.score + 1 : state.score,
-      };
+      if (!currentQuestion || state.isQuizComplete) return state;
 
-    case QUIZ_ACTIONS.NEXT_QUESTION:
-      const nextIndex = state.currentQuestionIndex + 1;
+      // Prevent double-answering
+      const hasAnswered = state.userAnswers[state.currentQuestionIndex] != null;
+      if (hasAnswered) return state;
+
+      const correctAnswer = currentQuestion.correctAnswer ?? currentQuestion.correct_answer;
+      const nextUserAnswers = [...state.userAnswers];
+      nextUserAnswers[state.currentQuestionIndex] = action.payload;
+
       return {
         ...state,
-        currentQuestionIndex: nextIndex,
-        isQuizComplete: nextIndex >= state.questions.length,
+        userAnswers: nextUserAnswers,
+        score: action.payload === correctAnswer ? state.score + 1 : state.score,
       };
+    }
+
+    case QUIZ_ACTIONS.NEXT_QUESTION: {
+      if (state.isQuizComplete || state.questions.length === 0) return state;
+
+      const nextIndex = state.currentQuestionIndex + 1;
+      const isQuizComplete = nextIndex >= state.questions.length;
+
+      return {
+        ...state,
+        currentQuestionIndex: isQuizComplete ? state.currentQuestionIndex : nextIndex,
+        isQuizComplete,
+      };
+    }
 
     case QUIZ_ACTIONS.RESET_QUIZ:
-      return initialState;
+      return getInitialState();
 
     default:
       return state;
   }
 }
 
+// Provider
 export function QuizProvider({ children }) {
   const [state, dispatch] = useReducer(quizReducer, initialState);
 
   const loadQuestions = useCallback(async (amount = 10, category = '', difficulty = '') => {
-    console.log('loadQuestions called with:', { amount, category, difficulty });
     dispatch({ type: QUIZ_ACTIONS.SET_LOADING, payload: true });
-    
+
     try {
-      const questions = await fetchQuizQuestions({ 
-        numberOfQuestions: amount, 
-        category, 
-        difficulty 
+      const questions = await fetchQuizQuestions({
+        numberOfQuestions: amount,
+        category,
+        difficulty,
       });
-      console.log('Questions loaded:', questions);
       dispatch({ type: QUIZ_ACTIONS.SET_QUESTIONS, payload: questions });
-    } catch (error) {
-      console.error('Error loading questions:', error);
-      dispatch({ type: QUIZ_ACTIONS.SET_ERROR, payload: error.message });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load questions';
+      dispatch({ type: QUIZ_ACTIONS.SET_ERROR, payload: message });
     }
   }, []);
 
@@ -105,20 +128,19 @@ export function QuizProvider({ children }) {
     dispatch({ type: QUIZ_ACTIONS.RESET_QUIZ });
   }, []);
 
-  const value = {
-    ...state,
-    loadQuestions,
-    selectAnswer,
-    nextQuestion,
-    resetQuiz,
-  };
+  // Memoize value to prevent unnecessary re-renders
+  const value = useMemo(
+    () => ({ ...state, loadQuestions, selectAnswer, nextQuestion, resetQuiz }),
+    [state, loadQuestions, selectAnswer, nextQuestion, resetQuiz]
+  );
 
   return <QuizContext.Provider value={value}>{children}</QuizContext.Provider>;
 }
 
+// Custom hook
 export function useQuizContext() {
   const context = useContext(QuizContext);
-  if (!context) {
+  if (context === null) {
     throw new Error('useQuizContext must be used within QuizProvider');
   }
   return context;

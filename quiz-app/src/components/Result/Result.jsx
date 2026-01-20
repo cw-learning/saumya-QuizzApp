@@ -1,67 +1,49 @@
-import { useQuizContext } from '../../context/quizContext';
+import { useQuizContext } from '../../context/QuizContext';
 import { AgGridReact } from 'ag-grid-react';
-import { ModuleRegistry } from 'ag-grid-community';
-import { ClientSideRowModelModule } from 'ag-grid-community';
+import { ModuleRegistry, ClientSideRowModelModule, ValidationModule } from 'ag-grid-community';
 import { useMemo } from 'react';
 import { decodeHtmlEntities } from '../../services/quizApi';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 
-ModuleRegistry.registerModules([ClientSideRowModelModule]);
+// Register necessary AG Grid modules
+ModuleRegistry.registerModules([ClientSideRowModelModule, ValidationModule]);
 
-const YourAnswerRenderer = (params) => {
-  const bg = params.data.isCorrect ? 'bg-green-100' : 'bg-red-100';
-  const text = params.data.isCorrect ? 'text-green-800' : 'text-red-800';
-  return (
-    <div className={`${bg} ${text} px-3 py-2 rounded font-medium`}>
-      {params.value}
-    </div>
-  );
-};
-
-const CorrectAnswerRenderer = (params) => {
-  return (
-    <div className="bg-green-100 text-green-800 px-3 py-2 rounded font-medium">
-      {params.value}
-    </div>
-  );
-};
-
-const ResultRenderer = (params) => {
-  const icon = params.value ? '✓' : '✗';
-  const color = params.value ? 'text-green-600' : 'text-red-600';
-  return (
-    <div className={`text-center text-2xl font-bold ${color}`}>
-      {icon}
-    </div>
-  );
-};
-
-const DifficultyRenderer = (params) => {
-  let color = 'text-gray-600';
-  if (params.value === 'easy') color = 'text-green-600';
-  if (params.value === 'medium') color = 'text-yellow-600';
-  if (params.value === 'hard') color = 'text-red-600';
-  return (
-    <div className={`capitalize font-medium ${color}`}>
-      {params.value}
-    </div>
-  );
+const SCORE_THRESHOLDS = {
+  PERFECT: 100,
+  EXCELLENT: 80,
+  GOOD: 60,
+  OK: 40,
 };
 
 export default function Result() {
   const { questions, score, userAnswers, resetQuiz } = useQuizContext();
-  const totalQuestions = questions.length;
-  const percentage = Math.round((score / totalQuestions) * 100);
+  const totalQuestions = questions?.length ?? 0;
 
+  // Safe percentage
+  const rawPercentage = totalQuestions === 0 ? 0 : Math.round((score / totalQuestions) * 100);
+  const percentage = Math.min(100, Math.max(0, rawPercentage));
+
+  // Result message
   const getResultMessage = () => {
-    if (percentage === 100) return { emoji: '🏆', message: 'Perfect Score!', color: 'text-yellow-600' };
-    if (percentage >= 80) return { emoji: '🎉', message: 'Excellent!', color: 'text-green-600' };
-    if (percentage >= 60) return { emoji: '👍', message: 'Good Job!', color: 'text-blue-600' };
-    if (percentage >= 40) return { emoji: '😊', message: 'Not Bad!', color: 'text-orange-600' };
+    if (percentage === SCORE_THRESHOLDS.PERFECT) return { emoji: '🏆', message: 'Perfect Score!', color: 'text-yellow-600' };
+    if (percentage >= SCORE_THRESHOLDS.EXCELLENT) return { emoji: '🎉', message: 'Excellent!', color: 'text-green-600' };
+    if (percentage >= SCORE_THRESHOLDS.GOOD) return { emoji: '👍', message: 'Good Job!', color: 'text-blue-600' };
+    if (percentage >= SCORE_THRESHOLDS.OK) return { emoji: '😊', message: 'Not Bad!', color: 'text-orange-600' };
     return { emoji: '💪', message: 'Keep Trying!', color: 'text-red-600' };
   };
-
   const result = getResultMessage();
 
+  // Progress bar color
+  const progressBarColorClass =
+    percentage >= SCORE_THRESHOLDS.EXCELLENT
+      ? 'bg-green-500'
+      : percentage >= SCORE_THRESHOLDS.GOOD
+      ? 'bg-blue-500'
+      : percentage >= SCORE_THRESHOLDS.OK
+      ? 'bg-orange-500'
+      : 'bg-red-500';
+
+  // Prepare AG Grid row data
   const rowData = useMemo(() => {
     return questions.map((q, index) => {
       const userAnswer = userAnswers[index] || '';
@@ -76,20 +58,29 @@ export default function Result() {
     });
   }, [questions, userAnswers]);
 
-  const columnDefs = useMemo(() => [
-    { headerName: '#', valueGetter: 'node.rowIndex + 1', width: 70 },
-    { headerName: 'Question', field: 'question', flex: 3 },
-    { headerName: 'Your Answer', field: 'userAnswer', flex: 1, cellRenderer: YourAnswerRenderer },
-    { headerName: 'Correct Answer', field: 'correctAnswer', flex: 1, cellRenderer: CorrectAnswerRenderer },
-    { headerName: 'Result', field: 'isCorrect', width: 100, cellRenderer: ResultRenderer },
-    { headerName: 'Difficulty', field: 'difficulty', width: 130, cellRenderer: DifficultyRenderer }
-  ], []);
+  // Column definitions 
+const columnDefs = useMemo(() => [
+  { field: 'question' },
+  { field: 'userAnswer' },
+  { field: 'correctAnswer' },
+  { field: 'isCorrect', cellRenderer: params => 
+    <span>{params.value ? 'Yes' : 'No'}</span>
+  },
+  { field: 'difficulty' }
+], []);
 
-  const defaultColDef = useMemo(() => ({ resizable: true }), []);
+  // Default column definition
+  const defaultColDef = useMemo(() => ({
+    flex: 1,
+    minWidth: 100,
+    resizable: true
+  }), []);
 
   return (
     <div className="w-screen min-h-screen bg-gray-50 relative">
-      <div className="absolute top-4 right-4 pointer-events-auto z-10">
+     
+      {/* Retake Quiz Button */}
+      <div className="absolute top-4 right-4 z-10">
         <button
           onClick={resetQuiz}
           className="py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 shadow-md hover:shadow-xl"
@@ -98,6 +89,7 @@ export default function Result() {
         </button>
       </div>
 
+      {/* Summary Section */}
       <div className="w-full bg-gradient-to-r from-blue-600 to-purple-600 py-12 px-4">
         <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center">
@@ -137,6 +129,7 @@ export default function Result() {
         </div>
       </div>
 
+      {/* Detailed Question Grid */}
       <div className="w-full bg-white py-12 px-4">
         <div className="w-full">
           <h3 className="text-3xl font-bold text-gray-800 mb-6 text-center px-4">
@@ -147,7 +140,7 @@ export default function Result() {
               rowData={rowData}
               columnDefs={columnDefs}
               defaultColDef={defaultColDef}
-              domLayout='normal'
+              domLayout="normal"
               rowHeight={60}
               headerHeight={50}
             />
