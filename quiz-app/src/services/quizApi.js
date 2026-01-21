@@ -6,6 +6,7 @@ import { DEFAULT_QUIZ_OPTIONS } from '../constants/quizConstants';
 const QUIZ_URL =
   'https://raw.githubusercontent.com/SaumyaDwivedi179/quizApi/refs/heads/main/quiz-data.json';
 
+
 export const fetchQuizQuestions = async (options = {}) => {
   const {
     numberOfQuestions,
