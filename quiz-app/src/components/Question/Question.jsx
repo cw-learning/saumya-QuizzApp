@@ -58,8 +58,7 @@ export default function Question() {
 
   const isCorrect =
     selectedOption === (currentQuestion.correctAnswer ?? currentQuestion.correct_answer);
-
-  // Extracted button label for readability
+    
   const nextButtonLabel =
     currentQuestionIndex === questions.length - 1
       ? '📊 View Results'

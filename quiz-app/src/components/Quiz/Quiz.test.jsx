@@ -51,7 +51,7 @@ describe('Quiz Component', () => {
   });
 
   it('should update amount input value', async () => {
-    const user = userEvent.setup(); // PR change
+    const user = userEvent.setup(); 
     renderWithProvider(<Quiz />);
 
     const amountInput = screen.getByLabelText(/number of questions/i);
@@ -62,7 +62,7 @@ describe('Quiz Component', () => {
   });
 
   it('should update category select value', async () => {
-    const user = userEvent.setup(); // PR change
+    const user = userEvent.setup(); 
     renderWithProvider(<Quiz />);
 
     const categorySelect = screen.getByLabelText(/category/i);
@@ -72,7 +72,7 @@ describe('Quiz Component', () => {
   });
 
   it('should update difficulty select value', async () => {
-    const user = userEvent.setup(); // PR change
+    const user = userEvent.setup(); 
     renderWithProvider(<Quiz />);
 
     const difficultySelect = screen.getByLabelText(/difficulty/i);
@@ -82,7 +82,7 @@ describe('Quiz Component', () => {
   });
 
   it('should show validation error for empty amount', async () => {
-    const user = userEvent.setup(); // PR change
+    const user = userEvent.setup(); 
     renderWithProvider(<Quiz />);
 
     const amountInput = screen.getByLabelText(/number of questions/i);
@@ -97,7 +97,7 @@ describe('Quiz Component', () => {
   });
 
   it('should call loadQuestions with correct options on submit', async () => {
-    const user = userEvent.setup(); // PR change
+    const user = userEvent.setup(); 
     const mockQuestions = [
       {
         question: 'Test Question?',
@@ -135,7 +135,7 @@ describe('Quiz Component', () => {
   });
 
   it('should show loading state', async () => {
-    const user = userEvent.setup(); // PR change
+    const user = userEvent.setup(); 
     vi.mocked(quizApi.fetchQuizQuestions).mockImplementation(
       () => new Promise((resolve) => setTimeout(() => resolve([]), 100))
     );
@@ -151,7 +151,7 @@ describe('Quiz Component', () => {
   });
 
   it('should show error message on API failure', async () => {
-    const user = userEvent.setup(); // PR change
+    const user = userEvent.setup(); 
     vi.mocked(quizApi.fetchQuizQuestions).mockRejectedValue(
       new Error('Failed to fetch questions')
     );
@@ -167,7 +167,7 @@ describe('Quiz Component', () => {
   });
 
   it('should show retry button on error', async () => {
-    const user = userEvent.setup(); // PR change
+    const user = userEvent.setup(); 
     vi.mocked(quizApi.fetchQuizQuestions).mockRejectedValue(
       new Error('Network error')
     );

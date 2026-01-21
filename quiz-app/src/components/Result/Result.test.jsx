@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Result from './Result';
 
 // Original mock
@@ -27,7 +28,6 @@ vi.mock('../../context/QuizContext', () => ({
 
 describe('Result Component', () => {
   beforeEach(() => {
-    
     vi.clearAllMocks();
     mockQuizContext.score = 8;
     mockQuizContext.resetQuiz = vi.fn();
@@ -60,7 +60,6 @@ describe('Result Component', () => {
   });
 
   it('shows "Perfect Score!" message for 100%', () => {
-  
     mockQuizContext.score = 10;
     render(<Result />);
     expect(screen.getByText('Perfect Score!')).toBeInTheDocument();
@@ -88,10 +87,14 @@ describe('Result Component', () => {
     expect(screen.getByText('💪')).toBeInTheDocument();
   });
 
-  it('calls resetQuiz when retake button is clicked', () => {
+  it('calls resetQuiz when retake button is clicked', async () => {
     render(<Result />);
     const button = screen.getByRole('button', { name: /retake quiz/i });
-    fireEvent.click(button);
+
+    // ✅ Use userEvent instead of fireEvent, without changing test logic
+    const user = userEvent.setup();
+    await user.click(button);
+
     expect(mockQuizContext.resetQuiz).toHaveBeenCalled();
   });
 
