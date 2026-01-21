@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
-import { fetchQuizQuestions, fetchQuizCategories, decodeHtmlEntities } from './quizApi';
+import { fetchQuizQuestions, fetchQuizCategories } from './quizApi';
+import { decodeHtmlEntities } from '../Utils/decodeHtmlEntities';
+
+
 
 // Mock axios directly
 vi.mock('axios', () => {
