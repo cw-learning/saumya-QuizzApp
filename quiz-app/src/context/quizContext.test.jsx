@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { QuizProvider, useQuizContext } from './QuizContext';
+import { QuizProvider, useQuizContext } from './quizContext';
+import { fetchQuizQuestions } from '../services/quizApi';
 
 // Mock the API module
 vi.mock('../services/quizApi', () => ({
@@ -27,18 +28,14 @@ describe('QuizContext', () => {
 
   it('should throw error when useQuizContext is used outside provider', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    
-    expect(() => {
-      renderHook(() => useQuizContext());
-    }).toThrow('useQuizContext must be used within QuizProvider');
-    
+    expect(() => renderHook(() => useQuizContext())).toThrow(
+      'useQuizContext must be used within QuizProvider'
+    );
     consoleSpy.mockRestore();
   });
 
   it('should initialize with default state', () => {
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper: QuizProvider,
-    });
+    const { result } = renderHook(() => useQuizContext(), { wrapper: QuizProvider });
 
     expect(result.current.questions).toEqual([]);
     expect(result.current.currentQuestionIndex).toBe(0);
@@ -49,53 +46,66 @@ describe('QuizContext', () => {
   });
 
   it('should load questions successfully', async () => {
-    const { fetchQuizQuestions } = await import('../services/quizApi');
-    vi.mocked(fetchQuizQuestions).mockResolvedValue(mockQuestions);
+    fetchQuizQuestions.mockResolvedValue(mockQuestions);
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper: QuizProvider,
-    });
+    const { result } = renderHook(() => useQuizContext(), { wrapper: QuizProvider });
 
     await act(async () => {
       await result.current.loadQuestions(10);
     });
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(result.current.questions).toEqual(mockQuestions);
     expect(result.current.error).toBe(null);
   });
 
+  it('should forward params to fetchQuizQuestions', async () => {
+    fetchQuizQuestions.mockResolvedValue([]);
+
+    const { result } = renderHook(() => useQuizContext(), { wrapper: QuizProvider });
+
+    await act(async () => {
+      await result.current.loadQuestions(5, '9', 'easy');
+    });
+
+    expect(fetchQuizQuestions).toHaveBeenCalledWith({
+      numberOfQuestions: 5,
+      category: '9',
+      difficulty: 'easy',
+    });
+  });
+
   it('should handle API errors', async () => {
     const errorMessage = 'Failed to fetch questions';
-    const { fetchQuizQuestions } = await import('../services/quizApi');
-    vi.mocked(fetchQuizQuestions).mockRejectedValue(new Error(errorMessage));
+    fetchQuizQuestions.mockRejectedValue(new Error(errorMessage));
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper: QuizProvider,
-    });
+    const { result } = renderHook(() => useQuizContext(), { wrapper: QuizProvider });
 
     await act(async () => {
       await result.current.loadQuestions(10);
     });
 
-    await waitFor(() => {
-      expect(result.current.error).toBe(errorMessage);
-    });
-
+    await waitFor(() => expect(result.current.error).toBe(errorMessage));
     expect(result.current.isLoading).toBe(false);
     expect(result.current.questions).toEqual([]);
   });
 
-  it('should select answer and update score when correct', async () => {
-    const { fetchQuizQuestions } = await import('../services/quizApi');
-    vi.mocked(fetchQuizQuestions).mockResolvedValue(mockQuestions);
+  it('should no-op selectAnswer when no questions are loaded', () => {
+    const { result } = renderHook(() => useQuizContext(), { wrapper: QuizProvider });
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper: QuizProvider,
+    act(() => {
+      result.current.selectAnswer('Anything');
     });
+
+    expect(result.current.userAnswers).toEqual([]);
+    expect(result.current.score).toBe(0);
+  });
+
+  it('should select answer and update score when correct', async () => {
+    fetchQuizQuestions.mockResolvedValue(mockQuestions);
+
+    const { result } = renderHook(() => useQuizContext(), { wrapper: QuizProvider });
 
     await act(async () => {
       await result.current.loadQuestions(10);
@@ -110,12 +120,9 @@ describe('QuizContext', () => {
   });
 
   it('should not update score when answer is incorrect', async () => {
-    const { fetchQuizQuestions } = await import('../services/quizApi');
-    vi.mocked(fetchQuizQuestions).mockResolvedValue(mockQuestions);
+    fetchQuizQuestions.mockResolvedValue(mockQuestions);
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper: QuizProvider,
-    });
+    const { result } = renderHook(() => useQuizContext(), { wrapper: QuizProvider });
 
     await act(async () => {
       await result.current.loadQuestions(10);
@@ -130,12 +137,9 @@ describe('QuizContext', () => {
   });
 
   it('should move to next question', async () => {
-    const { fetchQuizQuestions } = await import('../services/quizApi');
-    vi.mocked(fetchQuizQuestions).mockResolvedValue(mockQuestions);
+    fetchQuizQuestions.mockResolvedValue(mockQuestions);
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper: QuizProvider,
-    });
+    const { result } = renderHook(() => useQuizContext(), { wrapper: QuizProvider });
 
     await act(async () => {
       await result.current.loadQuestions(10);
@@ -150,12 +154,9 @@ describe('QuizContext', () => {
   });
 
   it('should mark quiz as complete when reaching last question', async () => {
-    const { fetchQuizQuestions } = await import('../services/quizApi');
-    vi.mocked(fetchQuizQuestions).mockResolvedValue(mockQuestions);
+    fetchQuizQuestions.mockResolvedValue(mockQuestions);
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper: QuizProvider,
-    });
+    const { result } = renderHook(() => useQuizContext(), { wrapper: QuizProvider });
 
     await act(async () => {
       await result.current.loadQuestions(10);
@@ -169,13 +170,35 @@ describe('QuizContext', () => {
     expect(result.current.isQuizComplete).toBe(true);
   });
 
-  it('should reset quiz to initial state', async () => {
-    const { fetchQuizQuestions } = await import('../services/quizApi');
-    vi.mocked(fetchQuizQuestions).mockResolvedValue(mockQuestions);
+  it('should not advance index after quiz is complete', async () => {
+    fetchQuizQuestions.mockResolvedValue(mockQuestions);
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper: QuizProvider,
+    const { result } = renderHook(() => useQuizContext(), { wrapper: QuizProvider });
+
+    await act(async () => {
+      await result.current.loadQuestions(10);
     });
+
+    // Complete the quiz
+    act(() => {
+      result.current.nextQuestion();
+      result.current.nextQuestion();
+    });
+
+    const indexAfterComplete = result.current.currentQuestionIndex;
+
+    act(() => {
+      result.current.nextQuestion();
+    });
+
+    expect(result.current.currentQuestionIndex).toBe(indexAfterComplete);
+    expect(result.current.isQuizComplete).toBe(true);
+  });
+
+  it('should reset quiz to initial state', async () => {
+    fetchQuizQuestions.mockResolvedValue(mockQuestions);
+
+    const { result } = renderHook(() => useQuizContext(), { wrapper: QuizProvider });
 
     await act(async () => {
       await result.current.loadQuestions(10);
