@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useCallback, useMemo } from 'react';
 import { fetchQuizQuestions } from '../services/quizApi';
+import { DEFAULT_QUIZ_OPTIONS } from '../constants/quizConstants';
 
 const QuizContext = createContext(null);
 
@@ -100,7 +101,12 @@ function quizReducer(state, action) {
 export function QuizProvider({ children }) {
   const [state, dispatch] = useReducer(quizReducer, initialState);
 
-  const loadQuestions = useCallback(async (amount = 10, category = '', difficulty = '') => {
+  const loadQuestions = useCallback(
+  async (
+    amount = DEFAULT_QUIZ_OPTIONS.numberOfQuestions,
+    category = DEFAULT_QUIZ_OPTIONS.category,
+    difficulty = DEFAULT_QUIZ_OPTIONS.difficulty
+  ) => {
     dispatch({ type: QUIZ_ACTIONS.SET_LOADING, payload: true });
 
     try {
