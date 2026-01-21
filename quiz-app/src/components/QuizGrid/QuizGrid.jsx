@@ -2,18 +2,11 @@ import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import { useMemo } from 'react';
 import { useQuizContext } from '../../context/QuizContext';
-import { decodeHtmlEntities } from '../../services/quizApi';
-
-import 'ag-grid-community/styles/ag-grid.css';
+import { decodeHtmlEntities } from '../../Utils/decodeHtmlEntities';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 
-// Prevent duplicate module registration (HMR / tests safe)
-const AG_GRID_MODULES_KEY = '__agGridModulesRegistered__';
-if (!globalThis[AG_GRID_MODULES_KEY]) {
-  ModuleRegistry.registerModules([AllCommunityModule]);
-  globalThis[AG_GRID_MODULES_KEY] = true;
-}
-
+ModuleRegistry.registerModules([AllCommunityModule]);
+  
 export default function QuizGrid() {
   const { questions, userAnswers } = useQuizContext();
 
@@ -82,3 +75,5 @@ export default function QuizGrid() {
     </div>
   );
 }
+
+

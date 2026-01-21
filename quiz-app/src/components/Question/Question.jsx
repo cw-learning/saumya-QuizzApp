@@ -1,20 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuizContext } from '../../context/QuizContext';
-
-const decodeHtmlEntities = (value = '') => {
-  const textarea = document.createElement('textarea');
-  textarea.innerHTML = String(value);
-  return textarea.value;
-};
-
-const shuffle = (items) => {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-};
+import { decodeHtmlEntities } from '../../Utils/decodeHtmlEntities';
+import { shuffle } from '../../Utils/shuffle';
 
 export default function Question() {
   const {
@@ -26,12 +13,11 @@ export default function Question() {
 
   const [selectedOption, setSelectedOption] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
-  const [shuffledOptions, setShuffledOptions] = useState([]);
-
+  
   const currentQuestion = questions[currentQuestionIndex];
 
-  useEffect(() => {
-    if (!currentQuestion) return;
+  const shuffledOptions = useMemo(() => {
+    if (!currentQuestion) return [];
 
     const correct = currentQuestion.correctAnswer ?? currentQuestion.correct_answer;
     const incorrect =
@@ -39,7 +25,12 @@ export default function Question() {
 
     const options = [correct, ...incorrect].filter(Boolean);
 
-    setShuffledOptions(shuffle(options));
+    return shuffle(options);
+  }, [currentQuestion]);
+
+  useEffect(() => {
+    if (!currentQuestion) return;
+
     setSelectedOption('');
     setShowFeedback(false);
   }, [currentQuestion]);
@@ -58,7 +49,7 @@ export default function Question() {
 
   const isCorrect =
     selectedOption === (currentQuestion.correctAnswer ?? currentQuestion.correct_answer);
-    
+
   const nextButtonLabel =
     currentQuestionIndex === questions.length - 1
       ? '📊 View Results'

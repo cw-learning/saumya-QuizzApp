@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import QuizGrid from './QuizGrid';
 import * as QuizContext from '../../context/QuizContext';
-import * as quizApi from '../../services/quizApi';
+import { decodeHtmlEntities } from '../../Utils/decodeHtmlEntities';
 
 // Mock services and context
 vi.mock('../../services/quizApi');
@@ -14,6 +13,7 @@ vi.mock('../../context/QuizContext', async () => {
     useQuizContext: vi.fn(),
   };
 });
+vi.mock('../../Utils/decodeHtmlEntities');
 
 // Mock AG Grid React component
 vi.mock('ag-grid-react', () => ({
@@ -99,7 +99,7 @@ describe('QuizGrid Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // ESM-safe mock for decodeHtmlEntities
-    vi.mocked(quizApi.decodeHtmlEntities).mockImplementation((str) => str);
+    vi.mocked(decodeHtmlEntities).mockImplementation((str) => str);
   });
 
   it('should render the grid title', () => {
@@ -170,7 +170,7 @@ describe('QuizGrid Component', () => {
 
   it('should decode HTML entities in questions', () => {
     // Override mock for this test only
-    vi.mocked(quizApi.decodeHtmlEntities).mockImplementation((str) => str.replace('&amp;', '&'));
+    vi.mocked(decodeHtmlEntities).mockImplementation((str) => str.replace('&amp;', '&'));
 
     const questionsWithEntities = [
       {
@@ -186,7 +186,7 @@ describe('QuizGrid Component', () => {
       userAnswers: ['C & D'],
     });
 
-    expect(quizApi.decodeHtmlEntities).toHaveBeenCalled();
+    expect(decodeHtmlEntities).toHaveBeenCalled();
   });
 
   it('should correctly identify correct answers', () => {

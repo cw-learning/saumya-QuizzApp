@@ -22,9 +22,9 @@ class ErrorBoundary extends Component {
     });
 
     // Log error to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error caught by boundary:', error, errorInfo);
-    }
+    if (import.meta.env.DEV) {
+  console.error('Error caught by boundary:', error, errorInfo);
+}
 
   }
 
