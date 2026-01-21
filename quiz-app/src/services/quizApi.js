@@ -1,29 +1,10 @@
 import axios from 'axios';
+import { decodeHtmlEntities } from '../Utils/decodeHtmlEntities';
+import { shuffle } from '../Utils/shuffle';
 
-const TRIVIA_API_BASE_URL = 'https://raw.githubusercontent.com/SaumyaDwivedi179/quizApi/refs/heads/main/quiz-data.json';
 
-
-export const decodeHtmlEntities = (text = '') => {
-  const input = text == null ? '' : String(text);
-
-  if (typeof document === 'undefined') {
-    return input; 
-    
-  }
-
-  const textArea = document.createElement('textarea');
-  textArea.innerHTML = input;
-  return textArea.value;
-};
-
-const shuffleArray = (array) => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
+const QUIZ_URL =
+  'https://raw.githubusercontent.com/SaumyaDwivedi179/quizApi/refs/heads/main/quiz-data.json';
 
 export const fetchQuizQuestions = async (options = {}) => {
   const {
@@ -39,74 +20,71 @@ export const fetchQuizQuestions = async (options = {}) => {
   }
 
   try {
-    const response = await axios.get(TRIVIA_API_BASE_URL);
-    
-    if (!response.data || !response.data.results) {
-      throw new Error('Invalid API response format');
+    const response = await axios.get(QUIZ_URL);
+    const results = response?.data?.results;
+
+    if (!Array.isArray(results)) {
+      throw new TypeError('Invalid API response format: results must be an array');
     }
 
-    let questions = response.data.results;
+    let questions = results;
 
-    
-    
     if (category) {
-      questions = questions.filter(q => q.category === category);
+      questions = questions.filter(
+        (q) => decodeHtmlEntities(q.category) === category
+      );
     }
 
-    
-    
     if (difficulty) {
-      questions = questions.filter(q => q.difficulty === difficulty);
+      questions = questions.filter((q) => q.difficulty === difficulty);
     }
 
-    
-    questions = questions.filter(q => q.type === type);
+    questions = questions.filter((q) => q.type === type);
 
-    const shuffled = shuffleArray(questions);
+    const shuffled = shuffle(questions);
     const limited = shuffled.slice(0, amount);
 
-    
-    
-    return limited.map((q, index) => {
-      const correct = decodeHtmlEntities(q.correct_answer);
-      const incorrect = q.incorrect_answers.map(decodeHtmlEntities);
+    return limited.map((q) => {
+      const question = decodeHtmlEntities(q.question);
+      const categoryName = decodeHtmlEntities(q.category);
+      const correctAnswer = decodeHtmlEntities(q.correct_answer);
+      const incorrectAnswers = (q.incorrect_answers ?? []).map(
+        decodeHtmlEntities
+      );
 
       return {
-        id: index + 1,
-        question: decodeHtmlEntities(q.question),
-        correctAnswer: correct,
-        incorrectAnswers: incorrect,
-        allAnswers: shuffleArray([correct, ...incorrect]),
-        category: decodeHtmlEntities(q.category),
+        id: `${categoryName}:${question}`,
+        question,
+        correctAnswer,
+        incorrectAnswers,
+        allAnswers: shuffle([correctAnswer, ...incorrectAnswers]),
+        category: categoryName,
         difficulty: q.difficulty,
         type: q.type,
       };
     });
-  } catch (error) {
-    console.error('Error fetching quiz questions:', error);
-    throw new Error(`Failed to fetch quiz questions: ${error.message}`);
+  } catch (err) {
+    throw new Error(`Failed to fetch quiz questions: ${err.message}`, {
+      cause: err,
+    });
   }
 };
 
 export const fetchQuizCategories = async () => {
-  try {
-    const response = await axios.get(TRIVIA_API_BASE_URL);
-    
-    if (!response.data || !response.data.results) {
-      throw new Error('Invalid API response format');
-    }
+  const response = await axios.get(QUIZ_URL);
+  const results = response?.data?.results;
 
-    
-    const categories = [...new Set(response.data.results.map(q => q.category))];
-    
-   
-    
-    return categories.sort().map((name, index) => ({
-      id: index + 1,
-      name
-    }));
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    throw new Error(`Failed to fetch categories: ${error.message}`);
+  if (!Array.isArray(results)) {
+    throw new TypeError('Invalid API response format: results must be an array');
   }
+
+  const categories = [...new Set(results.map((q) => q.category))];
+  const sortedCategories = categories.toSorted();
+
+  return sortedCategories.map((name, index) => ({
+    id: index + 1,
+    name,
+  }));
 };
+
+// export { decodeHtmlEntities };

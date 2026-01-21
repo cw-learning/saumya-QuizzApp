@@ -1,5 +1,5 @@
-import { useQuizContext } from '../../context/quizContext';
-import Question from '../question/question';
+import { useQuizContext } from '../../context/QuizContext';
+import Question from '../Question/Question';
 import Result from '../Result/Result';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import { useForm } from '../../Hooks/Useform';

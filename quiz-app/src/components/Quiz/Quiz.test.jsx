@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event'; 
 import Quiz from './Quiz';
-import { QuizProvider } from '../../context/quizContext';
+import { QuizProvider } from '../../context/QuizContext';
 import * as quizApi from '../../services/quizApi';
 
 vi.mock('../../services/quizApi');
@@ -49,41 +50,46 @@ describe('Quiz Component', () => {
     expect(screen.getByText('Easy')).toBeInTheDocument();
   });
 
-  it('should update amount input value', () => {
+  it('should update amount input value', async () => {
+    const user = userEvent.setup(); 
     renderWithProvider(<Quiz />);
 
     const amountInput = screen.getByLabelText(/number of questions/i);
-    fireEvent.change(amountInput, { target: { value: '15' } });
+    await user.clear(amountInput);
+    await user.type(amountInput, '15');
 
     expect(amountInput).toHaveValue(15);
   });
 
-  it('should update category select value', () => {
+  it('should update category select value', async () => {
+    const user = userEvent.setup(); 
     renderWithProvider(<Quiz />);
 
     const categorySelect = screen.getByLabelText(/category/i);
-    fireEvent.change(categorySelect, { target: { value: 'General Knowledge' } });
+    await user.selectOptions(categorySelect, 'General Knowledge');
 
     expect(categorySelect).toHaveValue('General Knowledge');
   });
 
-  it('should update difficulty select value', () => {
+  it('should update difficulty select value', async () => {
+    const user = userEvent.setup(); 
     renderWithProvider(<Quiz />);
 
     const difficultySelect = screen.getByLabelText(/difficulty/i);
-    fireEvent.change(difficultySelect, { target: { value: 'easy' } });
+    await user.selectOptions(difficultySelect, 'easy');
 
     expect(difficultySelect).toHaveValue('easy');
   });
 
   it('should show validation error for empty amount', async () => {
+    const user = userEvent.setup(); 
     renderWithProvider(<Quiz />);
 
     const amountInput = screen.getByLabelText(/number of questions/i);
-    fireEvent.change(amountInput, { target: { value: '' } });
+    await user.clear(amountInput);
 
     const submitButton = screen.getByText('Start Quiz');
-    fireEvent.click(submitButton);
+    await user.click(submitButton);
 
     await waitFor(() => {
       expect(screen.getByText(/number of questions is required/i)).toBeInTheDocument();
@@ -91,6 +97,7 @@ describe('Quiz Component', () => {
   });
 
   it('should call loadQuestions with correct options on submit', async () => {
+    const user = userEvent.setup(); 
     const mockQuestions = [
       {
         question: 'Test Question?',
@@ -104,21 +111,22 @@ describe('Quiz Component', () => {
     renderWithProvider(<Quiz />);
 
     const amountInput = screen.getByLabelText(/number of questions/i);
-    fireEvent.change(amountInput, { target: { value: '5' } });
+    await user.clear(amountInput);
+    await user.type(amountInput, '5');
 
     const categorySelect = screen.getByLabelText(/category/i);
-    fireEvent.change(categorySelect, { target: { value: 'Science: Computers' } });
+    await user.selectOptions(categorySelect, 'Science: Computers');
 
     const difficultySelect = screen.getByLabelText(/difficulty/i);
-    fireEvent.change(difficultySelect, { target: { value: 'easy' } });
+    await user.selectOptions(difficultySelect, 'easy');
 
     const submitButton = screen.getByText('Start Quiz');
-    fireEvent.click(submitButton);
+    await user.click(submitButton);
 
     await waitFor(() => {
       expect(quizApi.fetchQuizQuestions).toHaveBeenCalled();
     });
-    
+
     expect(quizApi.fetchQuizQuestions).toHaveBeenCalledWith({
       numberOfQuestions: 5,
       category: 'Science: Computers',
@@ -127,6 +135,7 @@ describe('Quiz Component', () => {
   });
 
   it('should show loading state', async () => {
+    const user = userEvent.setup(); 
     vi.mocked(quizApi.fetchQuizQuestions).mockImplementation(
       () => new Promise((resolve) => setTimeout(() => resolve([]), 100))
     );
@@ -134,7 +143,7 @@ describe('Quiz Component', () => {
     renderWithProvider(<Quiz />);
 
     const submitButton = screen.getByText('Start Quiz');
-    fireEvent.click(submitButton);
+    await user.click(submitButton);
 
     await waitFor(() => {
       expect(screen.getByText('Loading quiz...')).toBeInTheDocument();
@@ -142,6 +151,7 @@ describe('Quiz Component', () => {
   });
 
   it('should show error message on API failure', async () => {
+    const user = userEvent.setup(); 
     vi.mocked(quizApi.fetchQuizQuestions).mockRejectedValue(
       new Error('Failed to fetch questions')
     );
@@ -149,7 +159,7 @@ describe('Quiz Component', () => {
     renderWithProvider(<Quiz />);
 
     const submitButton = screen.getByText('Start Quiz');
-    fireEvent.click(submitButton);
+    await user.click(submitButton);
 
     await waitFor(() => {
       expect(screen.getByText(/failed to fetch questions/i)).toBeInTheDocument();
@@ -157,6 +167,7 @@ describe('Quiz Component', () => {
   });
 
   it('should show retry button on error', async () => {
+    const user = userEvent.setup(); 
     vi.mocked(quizApi.fetchQuizQuestions).mockRejectedValue(
       new Error('Network error')
     );
@@ -164,7 +175,7 @@ describe('Quiz Component', () => {
     renderWithProvider(<Quiz />);
 
     const submitButton = screen.getByText('Start Quiz');
-    fireEvent.click(submitButton);
+    await user.click(submitButton);
 
     await waitFor(() => {
       expect(screen.getByText('Retry')).toBeInTheDocument();
