@@ -10,15 +10,18 @@ function SelectComponent({
   disabled = false,
   hasError = false,
   className = '',
+  'aria-invalid': ariaInvalid,
   ...props
 }: SelectProps) {
+  const resolvedAriaInvalid = hasError ? true : ariaInvalid;
+
   return (
     <select
       name={name}
       value={value}
       onChange={onChange}
       disabled={disabled}
-      aria-invalid={hasError || undefined}
+      aria-invalid={resolvedAriaInvalid}
       className={[
         selectBaseStyles,
         hasError && selectErrorStyles,

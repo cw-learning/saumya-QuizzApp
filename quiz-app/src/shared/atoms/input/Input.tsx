@@ -6,12 +6,16 @@ function InputComponent({
   type = 'text',
   hasError = false,
   className = '',
+  'aria-invalid': ariaInvalid,
   ...props
 }: InputProps) {
+  const resolvedAriaInvalid = hasError ? true : ariaInvalid
+
   return (
     <input
+      {...props}
       type={type}
-      aria-invalid={hasError || undefined}
+      aria-invalid={resolvedAriaInvalid}
       className={[
         inputBaseStyles,
         hasError && inputErrorStyles,
@@ -19,9 +23,8 @@ function InputComponent({
       ]
         .filter(Boolean)
         .join(' ')}
-      {...props}
     />
-  );
+  )
 }
 
 export const Input = memo(InputComponent);
