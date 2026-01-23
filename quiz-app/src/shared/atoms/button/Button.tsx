@@ -8,6 +8,7 @@ import {
 
 function ButtonComponent({
   children,
+  type = 'button',
   variant = 'primary',
   fullWidth = false,
   className = '',
@@ -15,6 +16,7 @@ function ButtonComponent({
 }: ButtonProps) {
   return (
     <button
+      type={type}
       className={[
         BASE_BUTTON_CLASSES,
         VARIANT_CLASSES[variant],
@@ -27,7 +29,6 @@ function ButtonComponent({
     >
       {children}
     </button>
-  );
+  )
 }
-
 export const Button = memo(ButtonComponent);

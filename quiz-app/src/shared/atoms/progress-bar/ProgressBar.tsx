@@ -6,23 +6,33 @@ import {
   progressColors,
 } from './progressBar.styles';
 
-function ProgressBarComponent({ value = 0 }: ProgressBarProps) {
-  let colorClass: string = progressColors.low;
+const LOW_THRESHOLD = 40
+const HIGH_THRESHOLD = 70
 
-  if (value >= 70) {
-    colorClass = progressColors.high;
-  } else if (value >= 40) {
-    colorClass = progressColors.medium;
-  }
+function ProgressBarComponent({ value = 0 }: ProgressBarProps) {
+  const clampedValue = Math.min(100, Math.max(0, value))
+
+  const colorClass =
+    clampedValue >= HIGH_THRESHOLD
+      ? progressColors.high
+      : clampedValue >= LOW_THRESHOLD
+        ? progressColors.medium
+        : progressColors.low
 
   return (
-    <div className={progressContainer}>
+    <div
+      className={progressContainer}
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={clampedValue}
+    >
       <div
         className={`${progressBaseFill} ${colorClass}`}
-        style={{ width: `${value}%` }}
+        style={{ width: `${clampedValue}%` }}
       />
     </div>
-  );
+  )
 }
 
 export const ProgressBar = memo(ProgressBarComponent);

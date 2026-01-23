@@ -4,26 +4,22 @@ import { inputBaseStyles, inputErrorStyles } from './input.styles';
 
 function InputComponent({
   type = 'text',
-  value,
-  onChange,
-  name,
-  placeholder,
-  disabled = false,
   hasError = false,
-  min,
-  max,
+  className = '',
+  ...props
 }: InputProps) {
   return (
     <input
       type={type}
-      name={name}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      disabled={disabled}
-      min={min}
-      max={max}
-      className={`${inputBaseStyles} ${hasError ? inputErrorStyles : ''}`}
+      aria-invalid={hasError || undefined}
+      className={[
+        inputBaseStyles,
+        hasError && inputErrorStyles,
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      {...props}
     />
   );
 }

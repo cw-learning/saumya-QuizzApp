@@ -9,6 +9,8 @@ function SelectComponent({
   options = [],
   disabled = false,
   hasError = false,
+  className = '',
+  ...props
 }: SelectProps) {
   return (
     <select
@@ -16,9 +18,15 @@ function SelectComponent({
       value={value}
       onChange={onChange}
       disabled={disabled}
-      className={`${selectBaseStyles} ${
-        hasError ? selectErrorStyles : ''
-      }`}
+      aria-invalid={hasError || undefined}
+      className={[
+        selectBaseStyles,
+        hasError && selectErrorStyles,
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      {...props}
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>
