@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { ButtonProps } from './button.types';
+import type { ButtonPropsType } from './button.types';
 import {
   BASE_BUTTON_CLASSES,
   VARIANT_CLASSES,
@@ -13,7 +13,7 @@ function ButtonComponent({
   fullWidth = false,
   className = '',
   ...props
-}: ButtonProps) {
+}: ButtonPropsType) {
   return (
     <button
       type={type}

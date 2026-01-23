@@ -1,10 +1,10 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react';
 
-export type ButtonVariant = 'primary' | 'secondary';
+export type ButtonVariantType = 'primary' | 'secondary';
 
-export type ButtonProps =
+export type ButtonPropsType =
   ButtonHTMLAttributes<HTMLButtonElement> & {
     children: ReactNode;
-    variant?: ButtonVariant;
+    variant?: ButtonVariantType;
     fullWidth?: boolean;
   };
