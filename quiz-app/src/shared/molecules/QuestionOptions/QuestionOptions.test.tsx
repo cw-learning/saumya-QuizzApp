@@ -10,6 +10,8 @@ describe('QuestionOptions', () => {
     render(
       <QuestionOptions
         options={options}
+        selectedOption={undefined}
+        correctOption="A"
         showFeedback={false}
         onSelect={vi.fn()}
       />
@@ -29,6 +31,8 @@ describe('QuestionOptions', () => {
     render(
       <QuestionOptions
         options={options}
+        selectedOption={undefined}
+        correctOption="A"
         showFeedback={false}
         onSelect={onSelect}
       />
@@ -63,6 +67,8 @@ describe('QuestionOptions', () => {
     render(
       <QuestionOptions
         options={options}
+        selectedOption={undefined}
+        correctOption="A"
         showFeedback={true}
         onSelect={vi.fn()}
       />
