@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import type { ScoreStatsProps } from './scoreStats.types'
 import {
   containerStyles,
@@ -16,22 +17,22 @@ export function ScoreStats({
 }: ScoreStatsProps) {
   return (
     <div className={containerStyles}>
-      <div className={`${cardBaseStyles} ${correctCardStyles}`}>
-        <div className={`${valueTextStyles} text-blue-600`}>
+      <div className={clsx(cardBaseStyles, correctCardStyles)}>
+        <div className={clsx(valueTextStyles, 'text-blue-600')}>
           {correct}
         </div>
         <p className={labelTextStyles}>Correct</p>
       </div>
 
-      <div className={`${cardBaseStyles} ${percentageCardStyles}`}>
-        <div className={`${valueTextStyles} text-purple-600`}>
+      <div className={clsx(cardBaseStyles, percentageCardStyles)}>
+        <div className={clsx(valueTextStyles, 'text-purple-600')}>
           {percentage}%
         </div>
         <p className={labelTextStyles}>Score</p>
       </div>
 
-      <div className={`${cardBaseStyles} ${incorrectCardStyles}`}>
-        <div className={`${valueTextStyles} text-red-600`}>
+      <div className={clsx(cardBaseStyles, incorrectCardStyles)}>
+        <div className={clsx(valueTextStyles, 'text-red-600')}>
           {incorrect}
         </div>
         <p className={labelTextStyles}>Incorrect</p>

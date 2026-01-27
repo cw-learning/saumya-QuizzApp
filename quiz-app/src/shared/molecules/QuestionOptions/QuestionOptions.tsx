@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import type { QuestionOptionsProps } from './questionOptions.types'
 import { Button } from '../../atoms/button/Button'
 import {
@@ -17,40 +18,46 @@ export function QuestionOptions({
   showFeedback,
   onSelect,
 }: QuestionOptionsProps) {
-  return (
-    <div className={listContainerStyles}>
-      {options.map((option) => {
-        const isSelected = selectedOption === option
-        const isCorrect = option === correctOption
+  const optionButtons = []
 
-        let optionStyles = defaultOptionStyles
+  for (const option of options) {
+    const isSelected = selectedOption === option
+    const isCorrect = option === correctOption
 
-        if (!showFeedback && isSelected) {
-          optionStyles = selectedOptionStyles
-        }
+    let stateStyle = defaultOptionStyles
 
-        if (showFeedback) {
-          if (isCorrect) {
-            optionStyles = correctOptionStyles
-          } else if (isSelected && !isCorrect) {
-            optionStyles = incorrectOptionStyles
-          } else {
-            optionStyles = disabledOptionStyles
-          }
-        }
+    if (!showFeedback && isSelected) {
+      stateStyle = selectedOptionStyles
+    }
 
-        return (
-          <Button
-            key={option}
-            type="button"
-            disabled={showFeedback}
-            onClick={() => onSelect(option)}
-            className={`${baseOptionStyles} ${optionStyles}`}
-          >
-            {option}
-          </Button>
-        )
-      })}
-    </div>
-  )
+    if (showFeedback) {
+      if (isCorrect) {
+        stateStyle = correctOptionStyles
+      } else if (isSelected && !isCorrect) {
+        stateStyle = incorrectOptionStyles
+      } else {
+        stateStyle = disabledOptionStyles
+      }
+    }
+
+    const optionClasses = clsx(baseOptionStyles, stateStyle)
+
+    const handleClick = () => {
+      onSelect(option)
+    }
+
+    optionButtons.push(
+      <Button
+        key={option}
+        type="button"
+        disabled={showFeedback}
+        onClick={handleClick}
+        className={optionClasses}
+      >
+        {option}
+      </Button>
+    )
+  }
+
+  return <div className={listContainerStyles}>{optionButtons}</div>
 }

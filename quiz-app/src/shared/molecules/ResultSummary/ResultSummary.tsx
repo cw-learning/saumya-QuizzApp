@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import type { ResultSummaryProps } from './resultSummary.types'
 import {
   containerStyles,
@@ -10,10 +11,12 @@ export function ResultSummary({
   message,
   colorClass,
 }: ResultSummaryProps) {
+  const messageClasses = clsx(messageBaseStyles, colorClass)
+
   return (
     <div className={containerStyles}>
       <div className={emojiStyles}>{emoji}</div>
-      <h2 className={`${messageBaseStyles} ${colorClass}`}>
+      <h2 className={messageClasses}>
         {message}
       </h2>
     </div>
