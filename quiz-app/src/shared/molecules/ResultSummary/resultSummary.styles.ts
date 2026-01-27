@@ -4,5 +4,6 @@ export const containerStyles =
 export const emojiStyles =
   'text-9xl mb-6 animate-bounce';
 
-export const messageBaseStyles =
-  'text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent';
+export const messageBaseStyles = 'text-4xl font-extrabold'
+
+export const messageGradientStyles = 'bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent'
