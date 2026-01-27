@@ -1,4 +1,4 @@
-import { InputHTMLAttributes } from 'react';
+import type { ChangeEventHandler } from 'react';
 
 export type InputType =
   | 'text'
@@ -9,8 +9,16 @@ export type InputType =
   | 'tel'
   | 'url';
 
-export interface InputProps
-  extends InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps {
   type?: InputType;
+  value?: string | number;
+  onChange?: ChangeEventHandler<HTMLInputElement>;
+  name?: string;
+  placeholder?: string;
+  disabled?: boolean;
   hasError?: boolean;
+  min?: number;
+  max?: number;
+  className?: string;
+  ariaInvalid?: boolean;
 }

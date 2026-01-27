@@ -1,12 +1,25 @@
-import { SelectHTMLAttributes } from 'react';
+import type { ChangeEventHandler } from 'react';
 
-export interface SelectOptionProps {
+export interface SelectOption {
   value: string | number;
   label: string;
 }
 
-export interface SelectProps
-  extends SelectHTMLAttributes<HTMLSelectElement> {
-  options?: SelectOptionProps[];
+export interface SelectProps {
+
+  name?: string;
+
+  value?: string | number;
+
+  onChange?: ChangeEventHandler<HTMLSelectElement>;
+
+  options?: SelectOption[];
+
+  disabled?: boolean;
+
   hasError?: boolean;
+
+  className?: string;
+
+  ariaInvalid?: boolean;
 }

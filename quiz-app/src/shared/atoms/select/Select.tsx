@@ -1,17 +1,16 @@
-import { memo } from 'react';
+import clsx from 'clsx';
 import type { SelectProps } from './select.types';
 import { selectBaseStyles, selectErrorStyles } from './select.styles';
 
-function SelectComponent({
+export function Select({
   name,
   value,
   onChange,
   options = [],
   disabled = false,
   hasError = false,
-  className = '',
-  'aria-invalid': ariaInvalid,
-  ...props
+  className,
+  ariaInvalid,
 }: SelectProps) {
   const resolvedAriaInvalid = hasError ? true : ariaInvalid;
 
@@ -22,14 +21,11 @@ function SelectComponent({
       onChange={onChange}
       disabled={disabled}
       aria-invalid={resolvedAriaInvalid}
-      className={[
+      className={clsx(
         selectBaseStyles,
         hasError && selectErrorStyles,
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      {...props}
+        className
+      )}
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>
@@ -39,5 +35,3 @@ function SelectComponent({
     </select>
   );
 }
-
-export const Select = memo(SelectComponent);

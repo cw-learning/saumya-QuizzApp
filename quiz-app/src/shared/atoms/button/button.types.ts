@@ -1,10 +1,21 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { MouseEventHandler, ReactNode } from 'react';
 
 export type ButtonVariantType = 'primary' | 'secondary';
 
-export type ButtonPropsType =
-  ButtonHTMLAttributes<HTMLButtonElement> & {
-    children: ReactNode;
-    variant?: ButtonVariantType;
-    fullWidth?: boolean;
-  };
+export interface ButtonProps {
+  children: ReactNode;
+
+  type?: 'button' | 'submit' | 'reset';
+
+  variant?: ButtonVariantType;
+
+  fullWidth?: boolean;
+
+  disabled?: boolean;
+
+  onClick?: MouseEventHandler<HTMLButtonElement>;
+
+  className?: string;
+
+  ariaLabel?: string;
+}

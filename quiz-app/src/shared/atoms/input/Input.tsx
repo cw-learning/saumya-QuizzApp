@@ -1,30 +1,26 @@
-import { memo } from 'react';
+import clsx from 'clsx';
 import type { InputProps } from './input.types';
 import { inputBaseStyles, inputErrorStyles } from './input.styles';
 
-function InputComponent({
+export function Input({
   type = 'text',
   hasError = false,
-  className = '',
-  'aria-invalid': ariaInvalid,
+  className,
+  ariaInvalid,
   ...props
 }: InputProps) {
-  const resolvedAriaInvalid = hasError ? true : ariaInvalid
+  const resolvedAriaInvalid = hasError ? true : ariaInvalid;
 
   return (
     <input
       {...props}
       type={type}
       aria-invalid={resolvedAriaInvalid}
-      className={[
+      className={clsx(
         inputBaseStyles,
         hasError && inputErrorStyles,
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+        className
+      )}
     />
-  )
+  );
 }
-
-export const Input = memo(InputComponent);

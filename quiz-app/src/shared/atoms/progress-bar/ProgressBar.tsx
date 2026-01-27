@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import clsx from 'clsx';
 import type { ProgressBarProps } from './progressBar.types';
 import {
   progressContainer,
@@ -6,18 +6,18 @@ import {
   progressColors,
 } from './progressBar.styles';
 
-const LOW_THRESHOLD = 40
-const HIGH_THRESHOLD = 70
+const LOW_THRESHOLD = 40;
+const HIGH_THRESHOLD = 70;
 
-function ProgressBarComponent({ value = 0 }: ProgressBarProps) {
-  const clampedValue = Math.min(100, Math.max(0, value))
+export function ProgressBar({ value = 0 }: ProgressBarProps) {
+  const clampedValue = Math.min(100, Math.max(0, value));
 
   const colorClass =
     clampedValue >= HIGH_THRESHOLD
       ? progressColors.high
       : clampedValue >= LOW_THRESHOLD
         ? progressColors.medium
-        : progressColors.low
+        : progressColors.low;
 
   return (
     <div
@@ -28,11 +28,9 @@ function ProgressBarComponent({ value = 0 }: ProgressBarProps) {
       aria-valuenow={clampedValue}
     >
       <div
-        className={`${progressBaseFill} ${colorClass}`}
+        className={clsx(progressBaseFill, colorClass)}
         style={{ width: `${clampedValue}%` }}
       />
     </div>
-  )
+  );
 }
-
-export const ProgressBar = memo(ProgressBarComponent);
