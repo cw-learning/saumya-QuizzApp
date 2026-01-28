@@ -2,11 +2,12 @@ import { useCallback, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { QuizContext } from './QuizContext'
-import type {
-  QuizContextValue,
-} from './quizContext.types'
+import type { QuizContextValue } from './quizContext.types'
 import { useQuizApi } from '../../core/hooks/useQuizApi'
-import type { QuizQuestion, FetchQuizOptions } from '../../core/hooks/types/quiz.types'
+import type {
+  QuizQuestion,
+  FetchQuizOptions,
+} from '../../core/hooks/types/quiz.types'
 
 interface QuizProviderProps {
   children: ReactNode
@@ -23,13 +24,17 @@ export function QuizProvider({ children }: QuizProviderProps) {
 
   const loadQuestions = useCallback(
     async (options: FetchQuizOptions) => {
-      const fetchedQuestions = await fetchQuestions(options)
+      try {
+        const fetchedQuestions = await fetchQuestions(options)
 
-      setQuestions(fetchedQuestions)
-      setCurrentQuestionIndex(0)
-      setUserAnswers({})
-      setScore(0)
-      setIsQuizComplete(false)
+        setQuestions(fetchedQuestions)
+        setCurrentQuestionIndex(0)
+        setUserAnswers({})
+        setScore(0)
+        setIsQuizComplete(false)
+      } catch {
+        
+      }
     },
     [fetchQuestions]
   )
@@ -38,6 +43,9 @@ export function QuizProvider({ children }: QuizProviderProps) {
     (answer: string) => {
       const currentQuestion = questions[currentQuestionIndex]
       if (!currentQuestion) return
+
+      // 🛑 Prevent double-answering / double-scoring
+      if (userAnswers[currentQuestion.id]) return
 
       setUserAnswers((prev) => ({
         ...prev,
@@ -48,16 +56,18 @@ export function QuizProvider({ children }: QuizProviderProps) {
         setScore((prev) => prev + 1)
       }
     },
-    [questions, currentQuestionIndex]
+    [questions, currentQuestionIndex, userAnswers]
   )
 
   const nextQuestion = useCallback(() => {
     setCurrentQuestionIndex((prev) => {
       const nextIndex = prev + 1
+
       if (nextIndex >= questions.length) {
         setIsQuizComplete(true)
         return prev
       }
+
       return nextIndex
     })
   }, [questions.length])

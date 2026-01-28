@@ -10,6 +10,7 @@ import {
 import type { FetchQuizOptions, QuizQuestion } from './types/quiz.types'
 
 const QUIZ_API_URL =
+  import.meta.env.VITE_QUIZ_API_URL ??
   'https://raw.githubusercontent.com/SaumyaDwivedi179/quizApi/refs/heads/main/quiz-data.json'
 
 export function useQuizApi() {
@@ -20,21 +21,21 @@ export function useQuizApi() {
     async (options: FetchQuizOptions = {}): Promise<QuizQuestion[]> => {
       const {
         numberOfQuestions = DEFAULT_QUIZ_OPTIONS.NUMBER_OF_QUESTIONS,
-        category = '',
-        difficulty = '',
+        category,
+        difficulty, // ✅ no empty-string default
         type = DEFAULT_QUIZ_OPTIONS.TYPE,
       } = options
 
       const amount = Number(numberOfQuestions)
+      const validationMessage = `numberOfQuestions must be between ${QUIZ_LIMITS.MIN_QUESTIONS} and ${QUIZ_LIMITS.MAX_QUESTIONS}`
 
       if (
         !Number.isInteger(amount) ||
         amount < QUIZ_LIMITS.MIN_QUESTIONS ||
         amount > QUIZ_LIMITS.MAX_QUESTIONS
       ) {
-        throw new Error(
-          `numberOfQuestions must be between ${QUIZ_LIMITS.MIN_QUESTIONS} and ${QUIZ_LIMITS.MAX_QUESTIONS}`
-        )
+        setError(validationMessage)
+        throw new Error(validationMessage)
       }
 
       setIsLoading(true)
@@ -97,7 +98,7 @@ export function useQuizApi() {
             : 'Failed to fetch quiz questions'
 
         setError(message)
-        throw err
+        throw err instanceof Error ? err : new Error(message)
       } finally {
         setIsLoading(false)
       }
@@ -129,7 +130,7 @@ export function useQuizApi() {
           : 'Failed to fetch categories'
 
       setError(message)
-      throw err
+      throw err instanceof Error ? err : new Error(message)
     } finally {
       setIsLoading(false)
     }

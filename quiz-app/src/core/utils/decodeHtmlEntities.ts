@@ -9,10 +9,10 @@ export function decodeHtmlEntities(text: unknown = ''): string {
 
   return input
     .replace(/&#x([0-9a-fA-F]+);/g, (_, hex: string) =>
-      String.fromCodePoint(parseInt(hex, 16))
+      String.fromCodePoint(Number.parseInt(hex, 16))
     )
     .replace(/&#(\d+);/g, (_, num: string) =>
-      String.fromCodePoint(parseInt(num, 10))
+      String.fromCodePoint(Number.parseInt(num, 10))
     )
     .replace(/&quot;/g, '"')
     .replace(/&apos;/g, "'")

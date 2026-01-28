@@ -61,17 +61,30 @@ describe('useQuizApi', () => {
     })
 
     expect(questions).toHaveLength(1)
-    expect(questions[0] && (questions[0].question === 'What is JS?' || questions[0].question === 'Who was Napoleon?')).toBe(true)
+    expect(
+      ['What is JS?', 'Who was Napoleon?']
+    ).toContain(questions[0]!.question)
   })
 
-  it('throws error for invalid numberOfQuestions', async () => {
+  it('throws error for invalid numberOfQuestions and sets error state', async () => {
     const { result } = renderHook(() => useQuizApi())
 
-    await expect(
-      result.current.fetchQuestions({
-        numberOfQuestions: -1,
-      })
-    ).rejects.toThrow()
+    let thrown: unknown
+
+    await act(async () => {
+      try {
+        await result.current.fetchQuestions({
+          numberOfQuestions: -1,
+        })
+      } catch (e) {
+        thrown = e
+      }
+    })
+
+    expect(thrown).toBeInstanceOf(Error)
+    expect(result.current.error).toMatch(
+      /numberOfQuestions must be between/i
+    )
   })
 
   it('filters questions by category', async () => {
@@ -119,13 +132,20 @@ describe('useQuizApi', () => {
 
     const { result } = renderHook(() => useQuizApi())
 
-    await expect(
-      result.current.fetchQuestions()
-    ).rejects.toThrow()
+    let thrown: unknown
 
     await act(async () => {
+      try {
+        await result.current.fetchQuestions()
+      } catch (e) {
+        thrown = e
+      }
     })
-    expect(result.current.error).toBeTruthy()
+
+    expect(thrown).toBeInstanceOf(Error)
+    expect(result.current.error).toBe(
+      'Invalid API response format'
+    )
   })
 
   it('fetches unique and sorted categories', async () => {
@@ -151,12 +171,17 @@ describe('useQuizApi', () => {
 
     const { result } = renderHook(() => useQuizApi())
 
-    await expect(
-      result.current.fetchCategories()
-    ).rejects.toThrow()
+    let thrown: unknown
 
     await act(async () => {
+      try {
+        await result.current.fetchCategories()
+      } catch (e) {
+        thrown = e
+      }
     })
-    expect(result.current.error).toBeTruthy()
+
+    expect(thrown).toBeInstanceOf(Error)
+    expect(result.current.error).toBe('Network error')
   })
 })
