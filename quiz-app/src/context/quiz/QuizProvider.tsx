@@ -22,6 +22,11 @@ export function QuizProvider({ children }: QuizProviderProps) {
   const [score, setScore] = useState(0)
   const [isQuizComplete, setIsQuizComplete] = useState(false)
 
+  /**
+   * Load quiz questions.
+   * - Never swallow errors
+   * - Keep local state consistent on failure
+   */
   const loadQuestions = useCallback(
     async (options: FetchQuizOptions) => {
       try {
@@ -32,31 +37,47 @@ export function QuizProvider({ children }: QuizProviderProps) {
         setUserAnswers({})
         setScore(0)
         setIsQuizComplete(false)
-      } catch {
-        
+      } catch (err) {
+        // keep provider state consistent even when loading fails
+        setQuestions([])
+        setCurrentQuestionIndex(0)
+        setUserAnswers({})
+        setScore(0)
+        setIsQuizComplete(false)
+
+        // ❗ important: propagate failure
+        throw err
       }
     },
     [fetchQuestions]
   )
 
+  /**
+   * Select an answer for the current question.
+   * Atomic update prevents double-scoring even if called rapidly.
+   */
   const selectAnswer = useCallback(
     (answer: string) => {
       const currentQuestion = questions[currentQuestionIndex]
       if (!currentQuestion) return
 
-      // 🛑 Prevent double-answering / double-scoring
-      if (userAnswers[currentQuestion.id]) return
+      setUserAnswers((prev) => {
+        // 🛑 atomic guard — safe even with rapid repeated calls
+        if (prev[currentQuestion.id] !== undefined) {
+          return prev
+        }
 
-      setUserAnswers((prev) => ({
-        ...prev,
-        [currentQuestion.id]: answer,
-      }))
+        if (answer === currentQuestion.correctAnswer) {
+          setScore((s) => s + 1)
+        }
 
-      if (answer === currentQuestion.correctAnswer) {
-        setScore((prev) => prev + 1)
-      }
+        return {
+          ...prev,
+          [currentQuestion.id]: answer,
+        }
+      })
     },
-    [questions, currentQuestionIndex, userAnswers]
+    [questions, currentQuestionIndex]
   )
 
   const nextQuestion = useCallback(() => {

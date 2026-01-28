@@ -22,9 +22,12 @@ export function useForm<
   FormValues extends Record<string, unknown>
 >({
   initialValues,
-  validationSchema = {},
+  validationSchema,
   onSubmit,
 }: UseFormProps<FormValues>) {
+ 
+  const schema: ValidationSchema<FormValues> = validationSchema ?? {}
+
   const [values, setValues] = useState<FormValues>(initialValues)
   const [errors, setErrors] = useState<FormErrors<FormValues>>({})
   const [touched, setTouched] = useState<FormTouched<FormValues>>({})
@@ -38,14 +41,14 @@ export function useForm<
     ) => {
       const fieldName = event.target.name as keyof FormValues
 
-      setValues((previousValues) => ({
-        ...previousValues,
+      setValues((prev) => ({
+        ...prev,
         [fieldName]: event.target.value,
       }))
 
       if (errors[fieldName]) {
-        setErrors((previousErrors) => {
-          const updatedErrors = { ...previousErrors }
+        setErrors((prevErrors) => {
+          const updatedErrors = { ...prevErrors }
           delete updatedErrors[fieldName]
           return updatedErrors
         })
@@ -62,25 +65,26 @@ export function useForm<
     ) => {
       const fieldName = event.target.name as keyof FormValues
 
-      setTouched((previousTouched) => ({
-        ...previousTouched,
+      setTouched((prevTouched) => ({
+        ...prevTouched,
         [fieldName]: true,
       }))
 
-      const validator = validationSchema[fieldName]
+      const validator = schema[fieldName]
       if (validator) {
         const error = validator(
           event.target.value as FormValues[keyof FormValues]
         )
+
         if (error) {
-          setErrors((previousErrors) => ({
-            ...previousErrors,
+          setErrors((prevErrors) => ({
+            ...prevErrors,
             [fieldName]: error,
           }))
         }
       }
     },
-    [validationSchema]
+    [schema]
   )
 
   const handleSubmit = useCallback(
@@ -90,14 +94,14 @@ export function useForm<
 
       try {
         const updatedErrors: FormErrors<FormValues> = {}
-        const updatedTouched: FormTouched<FormValues> = {} as FormTouched<FormValues>
+        const updatedTouched: FormTouched<FormValues> = {}
 
-        (
-          Object.keys(validationSchema) as Array<keyof FormValues>
-        ).forEach((fieldName: keyof FormValues) => {
+        ;(
+          Object.keys(schema) as Array<keyof FormValues>
+        ).forEach((fieldName) => {
           updatedTouched[fieldName] = true
 
-          const validator = validationSchema[fieldName]
+          const validator = schema[fieldName]
           if (validator) {
             const error = validator(values[fieldName])
             if (error) {
@@ -116,7 +120,7 @@ export function useForm<
         setIsSubmitting(false)
       }
     },
-    [values, validationSchema, onSubmit]
+    [values, schema, onSubmit]
   )
 
   const resetForm = useCallback(() => {
@@ -131,8 +135,8 @@ export function useForm<
       fieldName: FieldName,
       value: FormValues[FieldName]
     ) => {
-      setValues((previousValues) => ({
-        ...previousValues,
+      setValues((prev) => ({
+        ...prev,
         [fieldName]: value,
       }))
     },
@@ -144,8 +148,8 @@ export function useForm<
       fieldName: FieldName,
       error: string
     ) => {
-      setErrors((previousErrors) => ({
-        ...previousErrors,
+      setErrors((prev) => ({
+        ...prev,
         [fieldName]: error,
       }))
     },

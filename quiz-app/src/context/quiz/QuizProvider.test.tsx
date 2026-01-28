@@ -51,10 +51,9 @@ describe('QuizProvider', () => {
   it('loads questions and resets quiz state', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(
-      () => useQuizContext(),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useQuizContext(), {
+      wrapper,
+    })
 
     await act(async () => {
       await result.current.loadQuestions({ numberOfQuestions: 2 })
@@ -70,16 +69,15 @@ describe('QuizProvider', () => {
   it('stores selected answer', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(
-      () => useQuizContext(),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useQuizContext(), {
+      wrapper,
+    })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
-    act(() => {
+    await act(async () => {
       result.current.selectAnswer('A')
     })
 
@@ -91,16 +89,15 @@ describe('QuizProvider', () => {
   it('increments score when answer is correct', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(
-      () => useQuizContext(),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useQuizContext(), {
+      wrapper,
+    })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
-    act(() => {
+    await act(async () => {
       result.current.selectAnswer('A')
     })
 
@@ -110,16 +107,15 @@ describe('QuizProvider', () => {
   it('does not increment score for wrong answer', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(
-      () => useQuizContext(),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useQuizContext(), {
+      wrapper,
+    })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
-    act(() => {
+    await act(async () => {
       result.current.selectAnswer('B')
     })
 
@@ -129,16 +125,15 @@ describe('QuizProvider', () => {
   it('moves to next question', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(
-      () => useQuizContext(),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useQuizContext(), {
+      wrapper,
+    })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
-    act(() => {
+    await act(async () => {
       result.current.nextQuestion()
     })
 
@@ -148,16 +143,15 @@ describe('QuizProvider', () => {
   it('marks quiz complete when last question is passed', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(
-      () => useQuizContext(),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useQuizContext(), {
+      wrapper,
+    })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
-    act(() => {
+    await act(async () => {
       result.current.nextQuestion()
       result.current.nextQuestion()
     })
@@ -168,17 +162,21 @@ describe('QuizProvider', () => {
   it('resets quiz state', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(
-      () => useQuizContext(),
-      { wrapper }
-    )
+    const { result } = renderHook(() => useQuizContext(), {
+      wrapper,
+    })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
-    act(() => {
+    
+    await act(async () => {
       result.current.selectAnswer('A')
+    })
+
+    
+    await act(async () => {
       result.current.resetQuiz()
     })
 
