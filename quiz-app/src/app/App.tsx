@@ -1,9 +1,12 @@
-function App() {
-  
+import type { JSX } from 'react'
+import { Quiz } from '../features/quiz/components/Quiz'
+import { QuizProvider } from '../context/quiz/QuizProvider'
+
+function App(): JSX.Element {
   return (
-  <>
-   <h1>Quiz App</h1>
-  </>
+    <QuizProvider>
+      <Quiz />
+    </QuizProvider>
   )
 }
 
