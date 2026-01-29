@@ -1,6 +1,7 @@
 import {
   useState,
   useCallback,
+  useMemo,
   type ChangeEvent,
   type FocusEvent,
   type FormEvent,
@@ -25,8 +26,10 @@ export function useForm<
   validationSchema,
   onSubmit,
 }: UseFormProps<FormValues>) {
- 
-  const schema: ValidationSchema<FormValues> = validationSchema ?? {}
+  const schema: ValidationSchema<FormValues> = useMemo(
+    () => validationSchema ?? {},
+    [validationSchema]
+  )
 
   const [values, setValues] = useState<FormValues>(initialValues)
   const [errors, setErrors] = useState<FormErrors<FormValues>>({})
@@ -96,19 +99,19 @@ export function useForm<
         const updatedErrors: FormErrors<FormValues> = {}
         const updatedTouched: FormTouched<FormValues> = {}
 
-        ;(
-          Object.keys(schema) as Array<keyof FormValues>
-        ).forEach((fieldName) => {
-          updatedTouched[fieldName] = true
+        ;(Object.keys(schema) as Array<keyof FormValues>).forEach(
+          (fieldName) => {
+            updatedTouched[fieldName] = true
 
-          const validator = schema[fieldName]
-          if (validator) {
-            const error = validator(values[fieldName])
-            if (error) {
-              updatedErrors[fieldName] = error
+            const validator = schema[fieldName]
+            if (validator) {
+              const error = validator(values[fieldName])
+              if (error) {
+                updatedErrors[fieldName] = error
+              }
             }
           }
-        })
+        )
 
         setErrors(updatedErrors)
         setTouched(updatedTouched)

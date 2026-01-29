@@ -51,9 +51,7 @@ describe('QuizProvider', () => {
   it('loads questions and resets quiz state', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper,
-    })
+    const { result } = renderHook(() => useQuizContext(), { wrapper })
 
     await act(async () => {
       await result.current.loadQuestions({ numberOfQuestions: 2 })
@@ -69,35 +67,29 @@ describe('QuizProvider', () => {
   it('stores selected answer', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper,
-    })
+    const { result } = renderHook(() => useQuizContext(), { wrapper })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
-    await act(async () => {
+    act(() => {
       result.current.selectAnswer('A')
     })
 
-    expect(result.current.userAnswers).toEqual({
-      '1': 'A',
-    })
+    expect(result.current.userAnswers).toEqual({ '1': 'A' })
   })
 
   it('increments score when answer is correct', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper,
-    })
+    const { result } = renderHook(() => useQuizContext(), { wrapper })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
-    await act(async () => {
+    act(() => {
       result.current.selectAnswer('A')
     })
 
@@ -107,33 +99,47 @@ describe('QuizProvider', () => {
   it('does not increment score for wrong answer', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper,
-    })
+    const { result } = renderHook(() => useQuizContext(), { wrapper })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
-    await act(async () => {
+    act(() => {
       result.current.selectAnswer('B')
     })
 
     expect(result.current.score).toBe(0)
   })
 
-  it('moves to next question', async () => {
+  it('does not double-score when selectAnswer is called twice quickly', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper,
-    })
+    const { result } = renderHook(() => useQuizContext(), { wrapper })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
+    act(() => {
+      result.current.selectAnswer('A')
+      result.current.selectAnswer('A')
+    })
+
+    expect(result.current.score).toBe(1)
+    expect(result.current.userAnswers['1']).toBe('A')
+  })
+
+  it('moves to next question', async () => {
+    mockFetchQuestions.mockResolvedValue(mockQuestions)
+
+    const { result } = renderHook(() => useQuizContext(), { wrapper })
+
     await act(async () => {
+      await result.current.loadQuestions({})
+    })
+
+    act(() => {
       result.current.nextQuestion()
     })
 
@@ -143,15 +149,13 @@ describe('QuizProvider', () => {
   it('marks quiz complete when last question is passed', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper,
-    })
+    const { result } = renderHook(() => useQuizContext(), { wrapper })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
-    await act(async () => {
+    act(() => {
       result.current.nextQuestion()
       result.current.nextQuestion()
     })
@@ -159,24 +163,38 @@ describe('QuizProvider', () => {
     expect(result.current.isQuizComplete).toBe(true)
   })
 
+  it('resets state and rethrows when loadQuestions fails', async () => {
+    mockFetchQuestions.mockRejectedValue(new Error('boom'))
+
+    const { result } = renderHook(() => useQuizContext(), { wrapper })
+
+    await expect(
+      act(async () => {
+        await result.current.loadQuestions({})
+      })
+    ).rejects.toThrow('boom')
+
+    expect(result.current.questions).toEqual([])
+    expect(result.current.currentQuestionIndex).toBe(0)
+    expect(result.current.userAnswers).toEqual({})
+    expect(result.current.score).toBe(0)
+    expect(result.current.isQuizComplete).toBe(false)
+  })
+
   it('resets quiz state', async () => {
     mockFetchQuestions.mockResolvedValue(mockQuestions)
 
-    const { result } = renderHook(() => useQuizContext(), {
-      wrapper,
-    })
+    const { result } = renderHook(() => useQuizContext(), { wrapper })
 
     await act(async () => {
       await result.current.loadQuestions({})
     })
 
-    
-    await act(async () => {
+    act(() => {
       result.current.selectAnswer('A')
     })
 
-    
-    await act(async () => {
+    act(() => {
       result.current.resetQuiz()
     })
 

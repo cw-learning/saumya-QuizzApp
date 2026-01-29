@@ -19,56 +19,40 @@ export function QuizProvider({ children }: QuizProviderProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({})
-  const [score, setScore] = useState(0)
   const [isQuizComplete, setIsQuizComplete] = useState(false)
 
-  /**
-   * Load quiz questions.
-   * - Never swallow errors
-   * - Keep local state consistent on failure
-   */
+  const resetLocalQuizState = useCallback(
+    (nextQuestions: QuizQuestion[] = []) => {
+      setQuestions(nextQuestions)
+      setCurrentQuestionIndex(0)
+      setUserAnswers({})
+      setIsQuizComplete(false)
+    },
+    []
+  )
   const loadQuestions = useCallback(
     async (options: FetchQuizOptions) => {
       try {
         const fetchedQuestions = await fetchQuestions(options)
-
-        setQuestions(fetchedQuestions)
-        setCurrentQuestionIndex(0)
-        setUserAnswers({})
-        setScore(0)
-        setIsQuizComplete(false)
+        resetLocalQuizState(fetchedQuestions)
       } catch (err) {
-        // keep provider state consistent even when loading fails
-        setQuestions([])
-        setCurrentQuestionIndex(0)
-        setUserAnswers({})
-        setScore(0)
-        setIsQuizComplete(false)
-
-        // ❗ important: propagate failure
-        throw err
+        resetLocalQuizState([])
+        throw err instanceof Error
+          ? err
+          : new Error('Failed to load quiz questions')
       }
     },
-    [fetchQuestions]
+    [fetchQuestions, resetLocalQuizState]
   )
 
-  /**
-   * Select an answer for the current question.
-   * Atomic update prevents double-scoring even if called rapidly.
-   */
   const selectAnswer = useCallback(
     (answer: string) => {
       const currentQuestion = questions[currentQuestionIndex]
       if (!currentQuestion) return
 
       setUserAnswers((prev) => {
-        // 🛑 atomic guard — safe even with rapid repeated calls
         if (prev[currentQuestion.id] !== undefined) {
           return prev
-        }
-
-        if (answer === currentQuestion.correctAnswer) {
-          setScore((s) => s + 1)
         }
 
         return {
@@ -94,12 +78,16 @@ export function QuizProvider({ children }: QuizProviderProps) {
   }, [questions.length])
 
   const resetQuiz = useCallback(() => {
-    setQuestions([])
-    setCurrentQuestionIndex(0)
-    setUserAnswers({})
-    setScore(0)
-    setIsQuizComplete(false)
-  }, [])
+    resetLocalQuizState([])
+  }, [resetLocalQuizState])
+
+  const score = useMemo(() => {
+    return questions.reduce((total, question) => {
+      const answer = userAnswers[question.id]
+      return total +
+        (answer !== undefined && answer === question.correctAnswer ? 1 : 0)
+    }, 0)
+  }, [questions, userAnswers])
 
   const value: QuizContextValue = useMemo(
     () => ({
