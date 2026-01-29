@@ -3,6 +3,7 @@ import { ScoreStats } from '../../molecules/ScoreStats/ScoreStats'
 import { ProgressBar } from '../../atoms/progress-bar/ProgressBar'
 import { Button } from '../../atoms/button/Button'
 import { useQuizContext } from '../../../context/quiz/useQuizContext'
+import { getResultSummary } from './result.utils'
 
 export function Result() {
   const { score, questions, resetQuiz } = useQuizContext()
@@ -13,27 +14,9 @@ export function Result() {
       ? Math.round((score / totalQuestions) * 100)
       : 0
 
-  let emoji = '💪'
-  let message = 'Keep Trying!'
-  let colorClass = 'text-red-600'
 
-  if (percentage === 100) {
-    emoji = '🏆'
-    message = 'Perfect Score!'
-    colorClass = 'text-yellow-600'
-  } else if (percentage >= 80) {
-    emoji = '🎉'
-    message = 'Excellent!'
-    colorClass = 'text-green-600'
-  } else if (percentage >= 60) {
-    emoji = '👍'
-    message = 'Good Job!'
-    colorClass = 'text-blue-600'
-  } else if (percentage >= 40) {
-    emoji = '😊'
-    message = 'Not Bad!'
-    colorClass = 'text-orange-600'
-  }
+  const { emoji, message, colorClass } =
+    getResultSummary(percentage)
 
   const handleRetake = () => {
     resetQuiz()

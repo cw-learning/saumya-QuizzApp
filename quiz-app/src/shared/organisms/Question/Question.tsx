@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { QuestionHeader } from '../../molecules/QuestionHeader/QuestionHeader'
 import { QuestionOptions } from '../../molecules/QuestionOptions/QuestionOptions'
 import { Button } from '../../atoms/button/Button'
@@ -16,6 +16,11 @@ export function Question() {
   const [showFeedback, setShowFeedback] = useState(false)
 
   const currentQuestion = questions[currentQuestionIndex]
+
+  useEffect(() => {
+    setSelectedOption(undefined)
+    setShowFeedback(false)
+  }, [currentQuestionIndex, questions])
 
   if (!currentQuestion) {
     return null
@@ -36,8 +41,6 @@ export function Question() {
 
   const handleNext = () => {
     nextQuestion()
-    setSelectedOption(undefined)
-    setShowFeedback(false)
   }
 
   return (
