@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useReducer } from 'react'
 import type { ReactNode } from 'react'
 
 import { QuizContext } from './QuizContext'
@@ -9,105 +9,133 @@ import type {
   FetchQuizOptions,
 } from '../../core/hooks/types/quiz.types'
 
+type QuizState = {
+  questions: QuizQuestion[]
+  currentQuestionIndex: number
+  userAnswers: Record<string, string>
+  score: number
+  isQuizComplete: boolean
+}
+
+type QuizAction =
+  | { type: 'LOAD_QUESTIONS'; questions: QuizQuestion[] }
+  | { type: 'SELECT_ANSWER'; answer: string }
+  | { type: 'NEXT_QUESTION' }
+  | { type: 'RESET' }
+
+
+const initialState: QuizState = {
+  questions: [],
+  currentQuestionIndex: 0,
+  userAnswers: {},
+  score: 0,
+  isQuizComplete: false,
+}
+
+function quizReducer(
+  state: QuizState,
+  action: QuizAction
+): QuizState {
+  switch (action.type) {
+    case 'LOAD_QUESTIONS':
+      return {
+        ...initialState,
+        questions: action.questions,
+      }
+
+    case 'SELECT_ANSWER': {
+      const currentQuestion =
+        state.questions[state.currentQuestionIndex]
+
+      if (!currentQuestion) return state
+
+      if (state.userAnswers[currentQuestion.id] !== undefined) {
+        return state
+      }
+
+      const isCorrect =
+        action.answer === currentQuestion.correctAnswer
+
+      return {
+        ...state,
+        userAnswers: {
+          ...state.userAnswers,
+          [currentQuestion.id]: action.answer,
+        },
+        score: state.score + (isCorrect ? 1 : 0),
+      }
+    }
+
+    case 'NEXT_QUESTION': {
+      const nextIndex = state.currentQuestionIndex + 1
+
+      if (nextIndex >= state.questions.length) {
+        return {
+          ...state,
+          isQuizComplete: true,
+        }
+      }
+
+      return {
+        ...state,
+        currentQuestionIndex: nextIndex,
+      }
+    }
+
+    case 'RESET':
+      return initialState
+
+    default:
+      return state
+  }
+}
 interface QuizProviderProps {
   children: ReactNode
 }
 
 export function QuizProvider({ children }: QuizProviderProps) {
   const { fetchQuestions, isLoading, error } = useQuizApi()
+  const [state, dispatch] = useReducer(
+    quizReducer,
+    initialState
+  )
 
-  const [questions, setQuestions] = useState<QuizQuestion[]>([])
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({})
-  const [score, setScore] = useState(0)
-  const [isQuizComplete, setIsQuizComplete] = useState(false)
-
-  /**
-   * Load quiz questions.
-   * - Never swallow errors
-   * - Keep local state consistent on failure
-   */
+  
   const loadQuestions = useCallback(
     async (options: FetchQuizOptions) => {
       try {
         const fetchedQuestions = await fetchQuestions(options)
-
-        setQuestions(fetchedQuestions)
-        setCurrentQuestionIndex(0)
-        setUserAnswers({})
-        setScore(0)
-        setIsQuizComplete(false)
+        dispatch({
+          type: 'LOAD_QUESTIONS',
+          questions: fetchedQuestions,
+        })
       } catch (err) {
-        // keep provider state consistent even when loading fails
-        setQuestions([])
-        setCurrentQuestionIndex(0)
-        setUserAnswers({})
-        setScore(0)
-        setIsQuizComplete(false)
-
-        // ❗ important: propagate failure
+        dispatch({ type: 'RESET' })
         throw err
       }
     },
     [fetchQuestions]
   )
 
-  /**
-   * Select an answer for the current question.
-   * Atomic update prevents double-scoring even if called rapidly.
-   */
-  const selectAnswer = useCallback(
-    (answer: string) => {
-      const currentQuestion = questions[currentQuestionIndex]
-      if (!currentQuestion) return
-
-      setUserAnswers((prev) => {
-        // 🛑 atomic guard — safe even with rapid repeated calls
-        if (prev[currentQuestion.id] !== undefined) {
-          return prev
-        }
-
-        if (answer === currentQuestion.correctAnswer) {
-          setScore((s) => s + 1)
-        }
-
-        return {
-          ...prev,
-          [currentQuestion.id]: answer,
-        }
-      })
-    },
-    [questions, currentQuestionIndex]
-  )
+  const selectAnswer = useCallback((answer: string) => {
+    dispatch({ type: 'SELECT_ANSWER', answer })
+  }, [])
 
   const nextQuestion = useCallback(() => {
-    setCurrentQuestionIndex((prev) => {
-      const nextIndex = prev + 1
-
-      if (nextIndex >= questions.length) {
-        setIsQuizComplete(true)
-        return prev
-      }
-
-      return nextIndex
-    })
-  }, [questions.length])
+    dispatch({ type: 'NEXT_QUESTION' })
+  }, [])
 
   const resetQuiz = useCallback(() => {
-    setQuestions([])
-    setCurrentQuestionIndex(0)
-    setUserAnswers({})
-    setScore(0)
-    setIsQuizComplete(false)
+    dispatch({ type: 'RESET' })
   }, [])
 
   const value: QuizContextValue = useMemo(
     () => ({
-      questions,
-      currentQuestionIndex,
-      userAnswers,
-      score,
-      isQuizComplete,
+      questions: state.questions,
+      currentQuestionIndex: state.currentQuestionIndex,
+      userAnswers: state.userAnswers,
+      score: state.score,
+      isQuizComplete: state.isQuizComplete,
       isLoading,
       error,
       loadQuestions,
@@ -116,11 +144,7 @@ export function QuizProvider({ children }: QuizProviderProps) {
       resetQuiz,
     }),
     [
-      questions,
-      currentQuestionIndex,
-      userAnswers,
-      score,
-      isQuizComplete,
+      state,
       isLoading,
       error,
       loadQuestions,

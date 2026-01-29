@@ -1,5 +1,3 @@
-import clsx from 'clsx'
-
 import { ResultSummary } from '../../molecules/ResultSummary/ResultSummary'
 import { ScoreStats } from '../../molecules/ScoreStats/ScoreStats'
 import { ProgressBar } from '../../atoms/progress-bar/ProgressBar'
@@ -9,7 +7,7 @@ import { useQuizContext } from '../../../context/quiz/useQuizContext'
 import { getResultSummary } from './result.utils'
 import { resultStyles } from './Result.styles'
 
-export function Result(): JSX.Element {
+export function Result() {
   const { score, questions, resetQuiz } = useQuizContext()
 
   const totalQuestions = questions.length
@@ -36,7 +34,7 @@ export function Result(): JSX.Element {
           <ResultSummary
             emoji={emoji}
             message={message}
-            colorClass={clsx(colorClass)}
+            colorClass={colorClass}
           />
 
           {/* Stats */}

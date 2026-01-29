@@ -1,13 +1,14 @@
-import { memo } from 'react';
-import type { ProgressBarProps } from './progressBar.types';
+import { memo } from 'react'
+import type { ProgressBarProps } from './progressBar.types'
 import {
   progressContainer,
   progressBaseFill,
   progressColors,
-} from './progressBar.styles';
+} from './progressBar.styles'
+import { SCORE_THRESHOLDS } from '../../../core/constants/quiz.constants'
 
-const LOW_THRESHOLD = 40
-const HIGH_THRESHOLD = 70
+const LOW_THRESHOLD = SCORE_THRESHOLDS.OK
+const HIGH_THRESHOLD = SCORE_THRESHOLDS.EXCELLENT
 
 function ProgressBarComponent({ value = 0 }: ProgressBarProps) {
   const clampedValue = Math.min(100, Math.max(0, value))
@@ -35,4 +36,4 @@ function ProgressBarComponent({ value = 0 }: ProgressBarProps) {
   )
 }
 
-export const ProgressBar = memo(ProgressBarComponent);
+export const ProgressBar = memo(ProgressBarComponent)

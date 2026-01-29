@@ -1,9 +1,10 @@
 import type { ResultSummary } from './result.types'
+import { SCORE_THRESHOLDS } from '../../../core/constants/quiz.constants'
 
 export function getResultSummary(
   percentage: number
 ): ResultSummary {
-  if (percentage === 100) {
+  if (percentage === SCORE_THRESHOLDS.PERFECT) {
     return {
       emoji: '🏆',
       message: 'Perfect Score!',
@@ -11,7 +12,7 @@ export function getResultSummary(
     }
   }
 
-  if (percentage >= 80) {
+  if (percentage >= SCORE_THRESHOLDS.EXCELLENT) {
     return {
       emoji: '🎉',
       message: 'Excellent!',
@@ -19,7 +20,7 @@ export function getResultSummary(
     }
   }
 
-  if (percentage >= 60) {
+  if (percentage >= SCORE_THRESHOLDS.GOOD) {
     return {
       emoji: '👍',
       message: 'Good Job!',
@@ -27,7 +28,7 @@ export function getResultSummary(
     }
   }
 
-  if (percentage >= 40) {
+  if (percentage >= SCORE_THRESHOLDS.OK) {
     return {
       emoji: '😊',
       message: 'Not Bad!',

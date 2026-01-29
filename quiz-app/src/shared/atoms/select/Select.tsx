@@ -1,6 +1,6 @@
-import { memo } from 'react';
-import type { SelectProps } from './select.types';
-import { selectBaseStyles, selectErrorStyles } from './select.styles';
+import { memo } from 'react'
+import type { SelectProps } from './select.types'
+import { selectBaseStyles, selectErrorStyles } from './select.styles'
 
 function SelectComponent({
   name,
@@ -40,4 +40,4 @@ function SelectComponent({
   );
 }
 
-export const Select = memo(SelectComponent);
+export const Select = memo(SelectComponent)

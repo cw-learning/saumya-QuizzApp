@@ -1,10 +1,11 @@
-import { memo } from 'react';
-import type { ButtonPropsType } from './button.types';
+import { memo } from 'react'
+import clsx from 'clsx'
+import type { ButtonPropsType } from './button.types'
 import {
   BASE_BUTTON_CLASSES,
   VARIANT_CLASSES,
   FULL_WIDTH_CLASS,
-} from './button.styles';
+} from './button.styles'
 
 function ButtonComponent({
   children,
@@ -17,18 +18,17 @@ function ButtonComponent({
   return (
     <button
       type={type}
-      className={[
+      className={clsx(
         BASE_BUTTON_CLASSES,
         VARIANT_CLASSES[variant],
         fullWidth && FULL_WIDTH_CLASS,
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
+        className
+      )}
       {...props}
     >
       {children}
     </button>
   )
 }
-export const Button = memo(ButtonComponent);
+
+export const Button = memo(ButtonComponent)

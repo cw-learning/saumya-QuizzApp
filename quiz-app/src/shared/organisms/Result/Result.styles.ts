@@ -9,7 +9,7 @@ export const resultStyles = {
 
   /* -------- Result Card -------- */
   card:
-    'w-full max-w-5xl rounded-2xl bg-white px-6 py-8 shadow-xl text-center',
+  'relative w-full max-w-5xl rounded-2xl bg-white px-6 py-8 shadow-xl text-center',
 
   /* -------- Retake Button -------- */
   retakeButton:

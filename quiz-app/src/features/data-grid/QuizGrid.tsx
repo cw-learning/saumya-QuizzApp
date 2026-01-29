@@ -3,9 +3,14 @@ import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community'
 import { useMemo } from 'react'
 import { useQuizContext } from '../../context/quiz/useQuizContext'
 import { decodeHtmlEntities } from '../../core/utils/decodeHtmlEntities'
-import type { ColDef } from 'ag-grid-community'
+import type {
+  ColDef,
+  ICellRendererParams,
+  CellClassParams,
+} from 'ag-grid-community'
 import type { QuizGridRow } from './quizGrid.types'
 import { quizGridStyles } from './quizGrid.styles'
+
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 
@@ -16,18 +21,18 @@ export default function QuizGrid() {
 
   const rowData = useMemo<QuizGridRow[]>(() => {
     return questions.map((q) => {
-      const rawUserAnswer = userAnswers[q.id] ?? ''
+      const rawUserAnswer = userAnswers[q.id]
+      const hasUserAnswer =
+        rawUserAnswer !== undefined && rawUserAnswer !== ''
 
-      const userAnswer = decodeHtmlEntities(rawUserAnswer)
-      const correctAnswer = decodeHtmlEntities(
-        q.correctAnswer ?? ''
-      )
+      const userAnswer = decodeHtmlEntities(rawUserAnswer ?? '')
+      const correctAnswer = decodeHtmlEntities(q.correctAnswer ?? '')
 
       return {
         question: decodeHtmlEntities(q.question ?? ''),
-        userAnswer: userAnswer || '—',
+        userAnswer: hasUserAnswer ? userAnswer : '—',
         correctAnswer,
-        isCorrect: userAnswer === correctAnswer,
+        isCorrect: hasUserAnswer && userAnswer === correctAnswer,
         difficulty: q.difficulty ?? 'unknown',
       }
     })
@@ -53,9 +58,12 @@ export default function QuizGrid() {
       field: 'isCorrect',
       headerName: 'Correct',
       width: 130,
-      cellRenderer: (params: any) =>
-        params.value ? 'Yes' : 'No',
-      cellClass: (params) =>
+      cellRenderer: (
+        params: ICellRendererParams<QuizGridRow, boolean>
+      ) => (params.value ? 'Yes' : 'No'),
+      cellClass: (
+        params: CellClassParams<QuizGridRow, boolean>
+      ) =>
         params.value
           ? quizGridStyles.correctCell
           : quizGridStyles.incorrectCell,
@@ -64,7 +72,9 @@ export default function QuizGrid() {
       field: 'difficulty',
       headerName: 'Difficulty',
       width: 140,
-      cellClass: (params) => {
+      cellClass: (
+        params: CellClassParams<QuizGridRow, string>
+      ) => {
         switch (params.value) {
           case 'easy':
             return quizGridStyles.difficultyEasy
@@ -95,10 +105,8 @@ export default function QuizGrid() {
         📊 Detailed Question Review
       </h3>
 
-      <div
-        className={quizGridStyles.gridContainer}
-        style={{ height: 500 }}
-      >
+      {}
+      <div className={quizGridStyles.gridContainer}>
         <AgGridReact<QuizGridRow>
           rowData={rowData}
           columnDefs={columnDefs}

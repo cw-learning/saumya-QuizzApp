@@ -29,7 +29,7 @@ export function Quiz() {
         category: '',
         difficulty: '',
       },
-      onSubmit: (formValues) => {
+      onSubmit: async (formValues) => {
         const amount =
           Number(formValues.numberOfQuestions) || 10
 
@@ -45,11 +45,11 @@ export function Quiz() {
           options.difficulty = formValues.difficulty
         }
 
-        loadQuestions(options)
+        return loadQuestions(options)
       },
     })
 
-  /*  Loading */
+  /* Loading */
   if (isLoading) {
     return (
       <div className={quizStyles.screenCenter}>
@@ -60,7 +60,7 @@ export function Quiz() {
     )
   }
 
-  /*  Error */
+  /* Error */
   if (error) {
     return (
       <div className={quizStyles.screenCenter}>
@@ -71,22 +71,21 @@ export function Quiz() {
     )
   }
 
-  /*  Result */
+  /* Result */
   if (isQuizComplete) {
-  return (
-    <>
-      <Result />
-      <QuizGrid />
-    </>
-  )
-}
+    return (
+      <>
+        <Result />
+        <QuizGrid />
+      </>
+    )
+  }
 
   /* Setup */
   if (questions.length === 0) {
     return (
       <div className={quizStyles.page}>
         <div className={quizStyles.container}>
-
           {/* Hero */}
           <div className={quizStyles.hero}>
             <div className={quizStyles.heroIcon}>💡</div>

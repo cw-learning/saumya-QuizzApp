@@ -1,4 +1,4 @@
-import { InputHTMLAttributes } from 'react';
+import { InputHTMLAttributes } from 'react'
 
 export type InputType =
   | 'text'
@@ -7,10 +7,10 @@ export type InputType =
   | 'password'
   | 'search'
   | 'tel'
-  | 'url';
+  | 'url'
 
 export interface InputProps
   extends InputHTMLAttributes<HTMLInputElement> {
-  type?: InputType;
-  hasError?: boolean;
+  type?: InputType
+  hasError?: boolean
 }

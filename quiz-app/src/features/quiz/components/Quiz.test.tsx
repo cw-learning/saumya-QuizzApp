@@ -13,7 +13,9 @@ vi.mock('../../../context/quiz/useQuizContext', () => ({
 describe('Quiz feature', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
 
+  it('renders setup screen initially', () => {
     mockUseQuizContext.mockReturnValue({
       questions: [],
       isLoading: false,
@@ -21,9 +23,7 @@ describe('Quiz feature', () => {
       isQuizComplete: false,
       loadQuestions: vi.fn(),
     })
-  })
 
-  it('renders setup screen initially', () => {
     render(<Quiz />)
 
     expect(
@@ -33,6 +33,15 @@ describe('Quiz feature', () => {
 
   it('submits form and triggers question load', async () => {
     const user = userEvent.setup()
+    const loadQuestions = vi.fn()
+
+    mockUseQuizContext.mockReturnValue({
+      questions: [],
+      isLoading: false,
+      error: null,
+      isQuizComplete: false,
+      loadQuestions,
+    })
 
     render(<Quiz />)
 
@@ -44,12 +53,13 @@ describe('Quiz feature', () => {
       screen.getByRole('button', { name: /start quiz/i })
     )
 
-    expect(true).toBe(true) 
+    expect(loadQuestions).toHaveBeenCalledWith({
+      numberOfQuestions: 5,
+    })
   })
 
   it('renders loading state', () => {
-   
-    mockUseQuizContext.mockReturnValueOnce({
+    mockUseQuizContext.mockReturnValue({
       questions: [],
       isLoading: true,
       error: null,

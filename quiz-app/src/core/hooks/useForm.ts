@@ -25,7 +25,6 @@ export function useForm<
   validationSchema,
   onSubmit,
 }: UseFormProps<FormValues>) {
- 
   const schema: ValidationSchema<FormValues> = validationSchema ?? {}
 
   const [values, setValues] = useState<FormValues>(initialValues)
@@ -41,9 +40,17 @@ export function useForm<
     ) => {
       const fieldName = event.target.name as keyof FormValues
 
+      const nextValue: unknown =
+        event.target instanceof HTMLInputElement &&
+        event.target.type === 'number'
+          ? Number.isNaN(event.target.valueAsNumber)
+            ? ''
+            : event.target.valueAsNumber
+          : event.target.value
+
       setValues((prev) => ({
         ...prev,
-        [fieldName]: event.target.value,
+        [fieldName]: nextValue,
       }))
 
       if (errors[fieldName]) {
@@ -71,17 +78,17 @@ export function useForm<
       }))
 
       const validator = schema[fieldName]
-      if (validator) {
-        const error = validator(
-          event.target.value as FormValues[keyof FormValues]
-        )
+      if (!validator) return
 
-        if (error) {
-          setErrors((prevErrors) => ({
-            ...prevErrors,
-            [fieldName]: error,
-          }))
-        }
+      const error = validator(
+        event.target.value as FormValues[keyof FormValues]
+      )
+
+      if (error) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [fieldName]: error,
+        }))
       }
     },
     [schema]
@@ -96,19 +103,19 @@ export function useForm<
         const updatedErrors: FormErrors<FormValues> = {}
         const updatedTouched: FormTouched<FormValues> = {}
 
-        ;(
-          Object.keys(schema) as Array<keyof FormValues>
-        ).forEach((fieldName) => {
+        for (const fieldName of Object.keys(
+          schema
+        ) as Array<keyof FormValues>) {
           updatedTouched[fieldName] = true
 
           const validator = schema[fieldName]
-          if (validator) {
-            const error = validator(values[fieldName])
-            if (error) {
-              updatedErrors[fieldName] = error
-            }
+          if (!validator) continue
+
+          const error = validator(values[fieldName])
+          if (error) {
+            updatedErrors[fieldName] = error
           }
-        })
+        }
 
         setErrors(updatedErrors)
         setTouched(updatedTouched)

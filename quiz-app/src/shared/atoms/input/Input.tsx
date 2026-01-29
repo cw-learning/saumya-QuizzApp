@@ -1,6 +1,6 @@
-import { memo } from 'react';
-import type { InputProps } from './input.types';
-import { inputBaseStyles, inputErrorStyles } from './input.styles';
+import { memo } from 'react'
+import type { InputProps } from './input.types'
+import { inputBaseStyles, inputErrorStyles } from './input.styles'
 
 function InputComponent({
   type = 'text',
@@ -27,4 +27,4 @@ function InputComponent({
   )
 }
 
-export const Input = memo(InputComponent);
+export const Input = memo(InputComponent)

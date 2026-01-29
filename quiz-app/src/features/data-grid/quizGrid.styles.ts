@@ -4,8 +4,7 @@ export const quizGridStyles = {
   title:
     'mb-6 flex items-center justify-center gap-2 text-2xl font-bold text-gray-800',
 
-  gridContainer:
-    'ag-theme-alpine w-full rounded-lg overflow-hidden',
+   gridContainer: 'ag-theme-alpine w-full h-[500px] rounded-lg overflow-hidden',
 
   correctCell:
     'text-green-600 font-semibold',
