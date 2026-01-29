@@ -50,6 +50,7 @@ export function QuestionOptions({
       <Button
         key={option}
         type="button"
+        variant="secondary"
         disabled={showFeedback}
         onClick={handleClick}
         className={optionClasses}

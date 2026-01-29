@@ -7,6 +7,7 @@ import { Select } from '../../../shared/atoms/select/Select'
 import { useQuizContext } from '../../../context/quiz/useQuizContext'
 import { useForm } from '../../../core/hooks/useForm'
 import type { FetchQuizOptions } from '../../../core/hooks/types/quiz.types'
+import QuizGrid from '../../../features/data-grid/QuizGrid'
 
 import { QUIZ_UI_TEXT } from '../constants/quizUi.constants'
 import { quizStyles } from './quiz.styles'
@@ -72,8 +73,13 @@ export function Quiz() {
 
   /*  Result */
   if (isQuizComplete) {
-    return <Result />
-  }
+  return (
+    <>
+      <Result />
+      <QuizGrid />
+    </>
+  )
+}
 
   /* Setup */
   if (questions.length === 0) {

@@ -1,11 +1,12 @@
+// QuestionHeader.styles.ts
 export const CONTAINER_STYLES =
-  'bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-lg shadow-lg mb-6'
+  'mb-6 px-6 py-4 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white rounded-xl shadow-lg border border-white/20'
 
 export const META_ROW_STYLES =
-  'flex justify-between items-center mb-4'
+  'mb-3 flex justify-between items-center text-white/90'
 
 export const COUNTER_TEXT_STYLES =
-  'text-sm font-medium bg-blue-500 bg-opacity-20 px-3 py-1 rounded-full'
+  'inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full font-semibold text-sm'
 
 export const QUESTION_TEXT_STYLES =
-  'text-2xl font-bold leading-tight text-white'
+  'text-xl font-bold text-white drop-shadow-lg'

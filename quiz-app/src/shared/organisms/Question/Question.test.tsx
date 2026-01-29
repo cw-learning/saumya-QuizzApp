@@ -16,12 +16,19 @@ vi.mock('../../../context/quiz/useQuizContext', () => ({
         allAnswers: ['A', 'B', 'C'],
         correctAnswer: 'A',
       },
+      {
+        id: 'q2',
+        question: 'What is JSX?',
+        allAnswers: ['X', 'Y', 'Z'],
+        correctAnswer: 'X',
+      },
     ],
     currentQuestionIndex: 0,
     selectAnswer,
     nextQuestion,
   }),
 }))
+
 
 describe('Question organism', () => {
   beforeEach(() => {

@@ -3,6 +3,7 @@ import { QuestionHeader } from '../../molecules/QuestionHeader/QuestionHeader'
 import { QuestionOptions } from '../../molecules/QuestionOptions/QuestionOptions'
 import { Button } from '../../atoms/button/Button'
 import { useQuizContext } from '../../../context/quiz/useQuizContext'
+import { questionStyles } from './question.styles'
 
 export function Question() {
   const {
@@ -41,41 +42,51 @@ export function Question() {
   }
 
   return (
-    <div className="space-y-6">
-      <QuestionHeader
-        currentQuestion={currentQuestionIndex + 1}
-        totalQuestions={questions.length}
-        question={currentQuestion.question}
-      />
+    <div className={questionStyles.container}>
+      <div className={questionStyles.wrapper}>
+        <div className={questionStyles.content}>
+          <div className={questionStyles.questionSection}>
+            <QuestionHeader
+              currentQuestion={currentQuestionIndex + 1}
+              totalQuestions={questions.length}
+              question={currentQuestion.question}
+            />
+          </div>
 
-      <QuestionOptions
-        options={currentQuestion.allAnswers}
-        selectedOption={selectedOption}
-        correctOption={currentQuestion.correctAnswer}
-        showFeedback={showFeedback}
-        onSelect={handleSelect}
-      />
+          <div className={questionStyles.optionsSection}>
+            <QuestionOptions
+              options={currentQuestion.allAnswers}
+              selectedOption={selectedOption}
+              correctOption={currentQuestion.correctAnswer}
+              showFeedback={showFeedback}
+              onSelect={handleSelect}
+            />
+          </div>
 
-      {!showFeedback && (
-        <Button
-          type="button"
-          disabled={!selectedOption}
-          onClick={handleSubmit}
-          fullWidth
-        >
-          Submit Answer
-        </Button>
-      )}
+          <div className={questionStyles.buttonSection}>
+            {!showFeedback && (
+              <Button
+                type="button"
+                disabled={!selectedOption}
+                onClick={handleSubmit}
+                fullWidth
+              >
+                Submit Answer
+              </Button>
+            )}
 
-      {showFeedback && (
-        <Button
-          type="button"
-          onClick={handleNext}
-          fullWidth
-        >
-          Next Question
-        </Button>
-      )}
+            {showFeedback && (
+              <Button
+                type="button"
+                onClick={handleNext}
+                fullWidth
+              >
+                {currentQuestionIndex + 1 === questions.length ? 'View Results' : 'Next Question'}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
