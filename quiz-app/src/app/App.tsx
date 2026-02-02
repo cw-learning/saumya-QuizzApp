@@ -1,9 +1,6 @@
-function App() {
-  
+function App(): JSX.Element {
   return (
-  <>
-   <h1>Quiz App</h1>
-  </>
+      <h1>Quiz App</h1>
   )
 }
 
