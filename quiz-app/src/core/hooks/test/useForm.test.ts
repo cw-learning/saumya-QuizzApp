@@ -1,32 +1,39 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useForm } from '../useForm'
 
-type FormValues = {
+type FormValuesType = {
   name: string
   age: string
 }
 
 describe('useForm', () => {
-  it('initializes with initial values', () => {
+  const onSubmit = vi.fn()
+  const initialValues = { name: '', age: '' }
+  const validationSchema = {
+    name: (value: string) => (value ? undefined : 'Required'),
+  }
+
+  beforeEach(() => {
+    onSubmit.mockClear()
+  })
+
+  it('initializes form values with provided initial values', () => {
     const { result } = renderHook(() =>
-      useForm<FormValues>({
-        initialValues: { name: '', age: '' },
-        onSubmit: vi.fn(),
+      useForm<FormValuesType>({
+        initialValues,
+        onSubmit,
       })
     )
 
-    expect(result.current.values).toEqual({
-      name: '',
-      age: '',
-    })
+    expect(result.current.values).toEqual(initialValues)
   })
 
-  it('updates value on handleChange', () => {
+  it('updates field value when handleChange is called', () => {
     const { result } = renderHook(() =>
-      useForm<FormValues>({
-        initialValues: { name: '', age: '' },
-        onSubmit: vi.fn(),
+      useForm<FormValuesType>({
+        initialValues,
+        onSubmit,
       })
     )
 
@@ -39,44 +46,37 @@ describe('useForm', () => {
     expect(result.current.values.name).toBe('Saumya')
   })
 
-  it('clears field error on change', () => {
+  it('clears field error when value changes after validation error', () => {
     const { result } = renderHook(() =>
-      useForm<FormValues>({
-        initialValues: { name: '', age: '' },
-        validationSchema: {
-          name: (value) =>
-            value ? undefined : 'Required',
-        },
-        onSubmit: vi.fn(),
+      useForm<FormValuesType>({
+        initialValues,
+        validationSchema,
+        onSubmit,
       })
     )
 
-    // trigger validation error
     act(() => {
       result.current.handleBlur({
         target: { name: 'name', value: '' },
       } as React.FocusEvent<HTMLInputElement>)
     })
 
-    expect(result.current.errors.name).toBe(
-      'Required'
-    )
+    expect(result.current.errors.name).toBe('Required')
 
-    // change value → error should clear
     act(() => {
       result.current.handleChange({
-        target: { name: 'name', value: 'Saumya' },
+        target: { name: 'name', value: 'Alice' },
       } as React.ChangeEvent<HTMLInputElement>)
     })
 
     expect(result.current.errors.name).toBeUndefined()
   })
 
-  it('marks field as touched on blur', () => {
+  it('marks field as touched when handleBlur is called', () => {
     const { result } = renderHook(() =>
-      useForm<FormValues>({
-        initialValues: { name: '', age: '' },
-        onSubmit: vi.fn(),
+      useForm<FormValuesType>({
+        initialValues,
+        onSubmit,
       })
     )
 
@@ -89,15 +89,12 @@ describe('useForm', () => {
     expect(result.current.touched.name).toBe(true)
   })
 
-  it('sets validation error on blur', () => {
+  it('sets validation error when handleBlur is called on invalid field', () => {
     const { result } = renderHook(() =>
-      useForm<FormValues>({
-        initialValues: { name: '', age: '' },
-        validationSchema: {
-          name: (value) =>
-            value ? undefined : 'Required',
-        },
-        onSubmit: vi.fn(),
+      useForm<FormValuesType>({
+        initialValues,
+        validationSchema,
+        onSubmit,
       })
     )
 
@@ -107,21 +104,14 @@ describe('useForm', () => {
       } as React.FocusEvent<HTMLInputElement>)
     })
 
-    expect(result.current.errors.name).toBe(
-      'Required'
-    )
+    expect(result.current.errors.name).toBe('Required')
   })
 
-  it('calls onSubmit when no validation errors', () => {
-    const onSubmit = vi.fn()
-
+  it('calls onSubmit with form values when no validation errors exist', () => {
     const { result } = renderHook(() =>
-      useForm<FormValues>({
-        initialValues: { name: 'Saumya', age: '25' },
-        validationSchema: {
-          name: (value) =>
-            value ? undefined : 'Required',
-        },
+      useForm<FormValuesType>({
+        initialValues: { name: 'Alice', age: '25' },
+        validationSchema,
         onSubmit,
       })
     )
@@ -133,21 +123,16 @@ describe('useForm', () => {
     })
 
     expect(onSubmit).toHaveBeenCalledWith({
-      name: 'Saumya',
+      name: 'Alice',
       age: '25',
     })
   })
 
-  it('does not call onSubmit when validation errors exist', () => {
-    const onSubmit = vi.fn()
-
+  it('does not call onSubmit and sets errors when validation errors exist', () => {
     const { result } = renderHook(() =>
-      useForm<FormValues>({
-        initialValues: { name: '', age: '' },
-        validationSchema: {
-          name: (value) =>
-            value ? undefined : 'Required',
-        },
+      useForm<FormValuesType>({
+        initialValues,
+        validationSchema,
         onSubmit,
       })
     )
@@ -159,16 +144,14 @@ describe('useForm', () => {
     })
 
     expect(onSubmit).not.toHaveBeenCalled()
-    expect(result.current.errors.name).toBe(
-      'Required'
-    )
+    expect(result.current.errors.name).toBe('Required')
   })
 
-  it('resets form state correctly', () => {
+  it('resets form state to initial values and clears errors and touched fields', () => {
     const { result } = renderHook(() =>
-      useForm<FormValues>({
+      useForm<FormValuesType>({
         initialValues: { name: 'Initial', age: '10' },
-        onSubmit: vi.fn(),
+        onSubmit,
       })
     )
 

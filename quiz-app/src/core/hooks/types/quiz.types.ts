@@ -3,9 +3,9 @@ import type { QUIZ_DIFFICULTY } from '../../constants/quiz.constants'
 export type QuizDifficulty =
   (typeof QUIZ_DIFFICULTY)[keyof typeof QUIZ_DIFFICULTY]
 
-export type QuizQuestionType = 'multiple'
+export type QuizType = 'multiple'
 
-export interface QuizQuestion {
+export type QuizQuestionType = {
   id: string
   question: string
   correctAnswer: string
@@ -13,12 +13,12 @@ export interface QuizQuestion {
   allAnswers: string[]
   category: string
   difficulty: QuizDifficulty
-  type: QuizQuestionType
+  type: QuizType
 }
 
-export interface FetchQuizOptions {
+export type FetchQuizOptionsType = {
   numberOfQuestions?: number
   category?: string
   difficulty?: QuizDifficulty
-  type?: QuizQuestionType
+  type?: QuizType
 }

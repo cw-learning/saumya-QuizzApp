@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react'
 import axios from 'axios'
 
 import { useQuizApi } from '../useQuizApi'
-import type { QuizQuestion } from '../types/quiz.types'
+import type { QuizQuestionType } from '../types/quiz.types'
 
 vi.mock('axios')
 
@@ -43,16 +43,15 @@ const mockApiResponse = {
 describe('useQuizApi', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-  })
-
-  it('fetches and normalizes quiz questions', async () => {
     mockedAxios.get = vi.fn().mockResolvedValue({
       data: mockApiResponse,
     })
+  })
 
+  it('fetches and normalizes quiz questions from API response', async () => {
     const { result } = renderHook(() => useQuizApi())
 
-    let questions: QuizQuestion[] = []
+    let questions: QuizQuestionType[] = []
 
     await act(async () => {
       questions = await result.current.fetchQuestions({
@@ -66,7 +65,7 @@ describe('useQuizApi', () => {
     ).toContain(questions[0]!.question)
   })
 
-  it('throws error for invalid numberOfQuestions and sets error state', async () => {
+  it('throws error and sets error state for invalid numberOfQuestions', async () => {
     const { result } = renderHook(() => useQuizApi())
 
     let thrown: unknown
@@ -76,8 +75,8 @@ describe('useQuizApi', () => {
         await result.current.fetchQuestions({
           numberOfQuestions: -1,
         })
-      } catch (e) {
-        thrown = e
+      } catch (error) {
+        thrown = error
       }
     })
 
@@ -87,14 +86,10 @@ describe('useQuizApi', () => {
     )
   })
 
-  it('filters questions by category', async () => {
-    mockedAxios.get = vi.fn().mockResolvedValue({
-      data: mockApiResponse,
-    })
-
+  it('filters questions by category and returns matching questions', async () => {
     const { result } = renderHook(() => useQuizApi())
 
-    let questions: QuizQuestion[] = []
+    let questions: QuizQuestionType[] = []
 
     await act(async () => {
       questions = await result.current.fetchQuestions({
@@ -106,14 +101,10 @@ describe('useQuizApi', () => {
     expect(questions[0]!.category).toBe('Science')
   })
 
-  it('filters questions by difficulty', async () => {
-    mockedAxios.get = vi.fn().mockResolvedValue({
-      data: mockApiResponse,
-    })
-
+  it('filters questions by difficulty and returns matching questions', async () => {
     const { result } = renderHook(() => useQuizApi())
 
-    let questions: QuizQuestion[] = []
+    let questions: QuizQuestionType[] = []
 
     await act(async () => {
       questions = await result.current.fetchQuestions({
@@ -137,8 +128,8 @@ describe('useQuizApi', () => {
     await act(async () => {
       try {
         await result.current.fetchQuestions()
-      } catch (e) {
-        thrown = e
+      } catch (error) {
+        thrown = error
       }
     })
 
@@ -148,11 +139,7 @@ describe('useQuizApi', () => {
     )
   })
 
-  it('fetches unique and sorted categories', async () => {
-    mockedAxios.get = vi.fn().mockResolvedValue({
-      data: mockApiResponse,
-    })
-
+  it('fetches unique and sorted categories from API', async () => {
     const { result } = renderHook(() => useQuizApi())
 
     let categories: string[] = []
@@ -164,7 +151,7 @@ describe('useQuizApi', () => {
     expect(categories).toEqual(['History', 'Science'])
   })
 
-  it('sets error when fetchCategories fails', async () => {
+  it('sets error when fetchCategories fails due to network error', async () => {
     mockedAxios.get = vi.fn().mockRejectedValue(
       new Error('Network error')
     )
@@ -176,8 +163,8 @@ describe('useQuizApi', () => {
     await act(async () => {
       try {
         await result.current.fetchCategories()
-      } catch (e) {
-        thrown = e
+      } catch (error) {
+        thrown = error
       }
     })
 

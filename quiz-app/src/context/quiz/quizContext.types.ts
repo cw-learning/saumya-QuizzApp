@@ -1,7 +1,7 @@
-import type { QuizQuestion, FetchQuizOptions } from '../../core/hooks/types/quiz.types'
+import type { QuizQuestionType, FetchQuizOptionsType } from '../../core/hooks/types/quiz.types'
 
 export interface QuizContextState {
-  questions: QuizQuestion[]
+  questions: QuizQuestionType[]
   currentQuestionIndex: number
   userAnswers: Record<string, string>
   score: number
@@ -11,9 +11,9 @@ export interface QuizContextState {
 }
 
 export interface QuizContextActions {
-  loadQuestions: (options: FetchQuizOptions) => Promise<void>
+  loadQuestions: (options: FetchQuizOptionsType) => Promise<void>
   selectAnswer: (answer: string) => void
-  nextQuestion: () => void
+  onNextQuestion: () => void
   resetQuiz: () => void
 }
 

@@ -5,8 +5,8 @@ import { QuizContext } from './QuizContext'
 import type { QuizContextValue } from './quizContext.types'
 import { useQuizApi } from '../../core/hooks/useQuizApi'
 import type {
-  QuizQuestion,
-  FetchQuizOptions,
+  QuizQuestionType,
+  FetchQuizOptionsType,
 } from '../../core/hooks/types/quiz.types'
 
 interface QuizProviderProps {
@@ -16,13 +16,13 @@ interface QuizProviderProps {
 export function QuizProvider({ children }: QuizProviderProps) {
   const { fetchQuestions, isLoading, error } = useQuizApi()
 
-  const [questions, setQuestions] = useState<QuizQuestion[]>([])
+  const [questions, setQuestions] = useState<QuizQuestionType[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({})
   const [isQuizComplete, setIsQuizComplete] = useState(false)
 
   const resetLocalQuizState = useCallback(
-    (nextQuestions: QuizQuestion[] = []) => {
+    (nextQuestions: QuizQuestionType[] = []) => {
       setQuestions(nextQuestions)
       setCurrentQuestionIndex(0)
       setUserAnswers({})
@@ -31,7 +31,7 @@ export function QuizProvider({ children }: QuizProviderProps) {
     []
   )
   const loadQuestions = useCallback(
-    async (options: FetchQuizOptions) => {
+    async (options: FetchQuizOptionsType) => {
       try {
         const fetchedQuestions = await fetchQuestions(options)
         resetLocalQuizState(fetchedQuestions)
@@ -64,7 +64,7 @@ export function QuizProvider({ children }: QuizProviderProps) {
     [questions, currentQuestionIndex]
   )
 
-  const nextQuestion = useCallback(() => {
+  const onNextQuestion = useCallback(() => {
     setCurrentQuestionIndex((prev) => {
       const nextIndex = prev + 1
 
@@ -100,7 +100,7 @@ export function QuizProvider({ children }: QuizProviderProps) {
       error,
       loadQuestions,
       selectAnswer,
-      nextQuestion,
+      onNextQuestion,
       resetQuiz,
     }),
     [
@@ -113,7 +113,7 @@ export function QuizProvider({ children }: QuizProviderProps) {
       error,
       loadQuestions,
       selectAnswer,
-      nextQuestion,
+      onNextQuestion,
       resetQuiz,
     ]
   )

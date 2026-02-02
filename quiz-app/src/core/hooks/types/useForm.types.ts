@@ -1,17 +1,17 @@
-export type FieldValidator<FieldValue> = (
+export type FieldValidatorType<FieldValue> = (
   value: FieldValue
 ) => string | undefined;
 
-export type ValidationSchema<FormValues> = {
-  [FieldName in keyof FormValues]?: FieldValidator<
-    FormValues[FieldName]
+export type ValidationSchemaType<FormValuesType> = {
+  [FieldName in keyof FormValuesType]?: FieldValidatorType<
+    FormValuesType[FieldName]
   >;
 };
 
-export type FormErrors<FormValues> = Partial<
-  Record<keyof FormValues, string>
+export type FormErrorsType<FormValuesType> = Partial<
+  Record<keyof FormValuesType, string>
 >;
 
-export type FormTouched<FormValues> = Partial<
-  Record<keyof FormValues, boolean>
+export type FormTouchedType<FormValuesType> = Partial<
+  Record<keyof FormValuesType, boolean>
 >;
