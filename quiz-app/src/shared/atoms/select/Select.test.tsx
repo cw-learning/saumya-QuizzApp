@@ -9,26 +9,36 @@ describe('Select', () => {
     { value: 'hard', label: 'Hard' },
   ];
 
+  const renderComponent = (props?: Partial<React.ComponentProps<typeof Select>>) =>
+    render(<Select options={options} {...props} />);
+
+  const onChange = vi.fn();
+
+  it('renders correctly', () => {
+    renderComponent();
+
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+  });
+
   it('renders options', () => {
-    render(<Select options={options} />);
+    renderComponent();
 
     expect(screen.getByText('Easy')).toBeInTheDocument();
     expect(screen.getByText('Hard')).toBeInTheDocument();
   });
 
   it('calls onChange when option is selected', async () => {
-    const user = userEvent.setup();
-    const onChange = vi.fn();
+    onChange.mockClear();
 
-    render(<Select options={options} onChange={onChange} />);
+    renderComponent({ onChange });
 
-    await user.selectOptions(screen.getByRole('combobox'), 'hard');
+    await userEvent.selectOptions(screen.getByRole('combobox'), 'hard');
 
     expect(onChange).toHaveBeenCalled();
   });
 
   it('sets aria-invalid when hasError is true', () => {
-    render(<Select hasError />);
+    renderComponent({ hasError: true });
 
     expect(screen.getByRole('combobox')).toHaveAttribute(
       'aria-invalid',

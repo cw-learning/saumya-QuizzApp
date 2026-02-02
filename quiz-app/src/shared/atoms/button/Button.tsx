@@ -1,5 +1,6 @@
 import clsx from 'clsx';
-import type { ButtonProps, ButtonVariantType } from './button.types';
+import type { ButtonProps, ButtonVariantType  } from './button.types';
+import { ButtonType } from './button.types';
 import {
   BASE_BUTTON_CLASSES,
   PRIMARY_BUTTON_CLASSES,
@@ -14,18 +15,21 @@ const VARIANT_CLASS_MAP: Record<ButtonVariantType, string> = {
 
 export function Button({
   children,
-  type = 'button',
+  type = ButtonType.Button,
   variant = 'primary',
   fullWidth = false,
   disabled = false,
+  loading = false,
   className,
   onClick,
   ariaLabel,
 }: ButtonProps) {
+  const isDisabled = disabled || loading;
+
   return (
     <button
       type={type}
-      disabled={disabled}
+      disabled={isDisabled}
       aria-label={ariaLabel}
       onClick={onClick}
       className={clsx(
@@ -35,7 +39,7 @@ export function Button({
         className
       )}
     >
-      {children}
+      {loading ? 'Loading...' : children}
     </button>
   );
 }

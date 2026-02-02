@@ -13,14 +13,14 @@ export function Input({
 
   return (
     <input
-      {...props}
-      type={type}
+     type={type}
       aria-invalid={resolvedAriaInvalid}
       className={clsx(
         inputBaseStyles,
         hasError && inputErrorStyles,
         className
       )}
+    {...props}
     />
   );
 }

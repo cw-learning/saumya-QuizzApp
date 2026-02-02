@@ -3,6 +3,15 @@ import { describe, it, expect } from 'vitest';
 import { ProgressBar } from './ProgressBar';
 
 describe('ProgressBar', () => {
+  const renderComponent = (props?: Partial<React.ComponentProps<typeof ProgressBar>>) =>
+    render(<ProgressBar value={0} {...props} />);
+
+  it('renders correctly', () => {
+    renderComponent();
+
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
   it('clamps value below 0 to 0', () => {
     render(<ProgressBar value={-20} />);
 

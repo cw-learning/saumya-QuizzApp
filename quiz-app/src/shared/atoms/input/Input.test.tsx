@@ -4,25 +4,35 @@ import userEvent from '@testing-library/user-event';
 import { Input } from './Input';
 
 describe('Input', () => {
+  const renderComponent = (props?: Partial<React.ComponentProps<typeof Input>>) =>
+    render(<Input value="" {...props} />);
+
+  const onChange = vi.fn();
+
+  it('renders correctly', () => {
+    renderComponent();
+
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
   it('renders with given value', () => {
-    render(<Input value="test" />);
+    renderComponent({ value: 'test' });
 
     expect(screen.getByDisplayValue('test')).toBeInTheDocument();
   });
 
   it('calls onChange when typing', async () => {
-    const user = userEvent.setup();
-    const onChange = vi.fn();
+    onChange.mockClear();
 
-    render(<Input value="" onChange={onChange} />);
+    renderComponent({ onChange });
 
-    await user.type(screen.getByRole('textbox'), 'a');
+    await userEvent.type(screen.getByRole('textbox'), 'a');
 
     expect(onChange).toHaveBeenCalled();
   });
 
   it('sets aria-invalid when hasError is true', () => {
-    render(<Input hasError />);
+    renderComponent({ hasError: true });
 
     expect(screen.getByRole('textbox')).toHaveAttribute(
       'aria-invalid',
@@ -31,7 +41,7 @@ describe('Input', () => {
   });
 
   it('does not allow aria-invalid override when hasError is true', () => {
-    render(<Input hasError ariaInvalid={false} />);
+    renderComponent({ hasError: true, ariaInvalid: false });
 
     expect(screen.getByRole('textbox')).toHaveAttribute(
       'aria-invalid',
