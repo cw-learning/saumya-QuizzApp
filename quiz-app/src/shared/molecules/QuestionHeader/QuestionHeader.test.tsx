@@ -3,26 +3,23 @@ import { describe, it, expect } from 'vitest'
 import { QuestionHeader } from './QuestionHeader'
 
 describe('QuestionHeader', () => {
+  const renderComponent = (props?: Partial<React.ComponentProps<typeof QuestionHeader>>) =>
+    render(<QuestionHeader currentQuestion={1} totalQuestions={5} question="Test question" {...props} />)
+
+  it('renders correctly', () => {
+    renderComponent()
+
+    expect(screen.getByText('Question 1 of 5')).toBeInTheDocument()
+  })
+
   it('renders question counter correctly', () => {
-    render(
-      <QuestionHeader
-        currentQuestion={1}
-        totalQuestions={5}
-        question="Test question"
-      />
-    )
+    renderComponent()
 
     expect(screen.getByText('Question 1 of 5')).toBeInTheDocument()
   })
 
   it('renders the question text', () => {
-    render(
-      <QuestionHeader
-        currentQuestion={1}
-        totalQuestions={5}
-        question="What is JavaScript?"
-      />
-    )
+    renderComponent({ question: "What is JavaScript?" })
 
     expect(
       screen.getByText('What is JavaScript?')
@@ -30,13 +27,7 @@ describe('QuestionHeader', () => {
   })
 
   it('updates when props change', () => {
-    const { rerender } = render(
-      <QuestionHeader
-        currentQuestion={1}
-        totalQuestions={5}
-        question="Q1"
-      />
-    )
+    const { rerender } = renderComponent()
 
     rerender(
       <QuestionHeader
@@ -51,13 +42,7 @@ describe('QuestionHeader', () => {
   })
 
   it('handles last question correctly', () => {
-    render(
-      <QuestionHeader
-        currentQuestion={10}
-        totalQuestions={10}
-        question="Final question"
-      />
-    )
+    renderComponent({ currentQuestion: 10, totalQuestions: 10, question: "Final question" })
 
     expect(
       screen.getByText('Question 10 of 10')

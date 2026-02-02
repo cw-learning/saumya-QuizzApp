@@ -1,4 +1,4 @@
-import { JSX } from 'react'
+import { ReactElement } from 'react'
 import clsx from 'clsx'
 import type { ResultSummaryProps } from './resultSummary.types'
 import {
@@ -12,7 +12,7 @@ export function ResultSummary({
   emoji,
   message,
   colorClass,
-}: ResultSummaryProps): JSX.Element {
+}: ResultSummaryProps): ReactElement {
   const messageClasses = clsx(
     messageBaseStyles,
     colorClass ?? messageGradientStyles

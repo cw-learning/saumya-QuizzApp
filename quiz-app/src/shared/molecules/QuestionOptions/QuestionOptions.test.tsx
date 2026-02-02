@@ -5,15 +5,19 @@ import { QuestionOptions } from './QuestionOptions'
 
 describe('QuestionOptions', () => {
   const options = ['A', 'B', 'C']
+  const onSelect = vi.fn()
+
+  const renderComponent = (props?: Partial<React.ComponentProps<typeof QuestionOptions>>) =>
+    render(<QuestionOptions options={options} showFeedback={false} onSelect={onSelect} {...props} />)
+
+  it('renders correctly', () => {
+    renderComponent()
+
+    expect(screen.getByRole('button', { name: 'A' })).toBeInTheDocument()
+  })
 
   it('renders all options as buttons', () => {
-    render(
-      <QuestionOptions
-        options={options}
-        showFeedback={false}
-        onSelect={vi.fn()}
-      />
-    )
+    renderComponent()
 
     options.forEach((option) => {
       expect(
@@ -23,50 +27,28 @@ describe('QuestionOptions', () => {
   })
 
   it('calls onSelect with correct option value', async () => {
-    const user = userEvent.setup()
-    const onSelect = vi.fn()
+    onSelect.mockClear()
 
-    render(
-      <QuestionOptions
-        options={options}
-        showFeedback={false}
-        onSelect={onSelect}
-      />
-    )
+    renderComponent()
 
-    await user.click(screen.getByRole('button', { name: 'B' }))
+    await userEvent.click(screen.getByRole('button', { name: 'B' }))
 
     expect(onSelect).toHaveBeenCalledOnce()
     expect(onSelect).toHaveBeenCalledWith('B')
   })
 
   it('does not allow selection when showFeedback is true', async () => {
-    const user = userEvent.setup()
-    const onSelect = vi.fn()
+    onSelect.mockClear()
 
-    render(
-      <QuestionOptions
-        options={options}
-        selectedOption="A"
-        correctOption="A"
-        showFeedback={true}
-        onSelect={onSelect}
-      />
-    )
+    renderComponent({ showFeedback: true, selectedOption: 'A', correctOption: 'A' })
 
-    await user.click(screen.getByRole('button', { name: 'C' }))
+    await userEvent.click(screen.getByRole('button', { name: 'C' }))
 
     expect(onSelect).not.toHaveBeenCalled()
   })
 
   it('disables all buttons when feedback is shown', () => {
-    render(
-      <QuestionOptions
-        options={options}
-        showFeedback={true}
-        onSelect={vi.fn()}
-      />
-    )
+    renderComponent({ showFeedback: true })
 
     options.forEach((option) => {
       expect(

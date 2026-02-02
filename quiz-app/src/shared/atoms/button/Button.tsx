@@ -12,23 +12,25 @@ function ButtonComponent({
   variant = 'primary',
   fullWidth = false,
   className = '',
-  ...props
+  ...additionalProps
 }: ButtonPropsType) {
+  const buttonClasses = [
+    BASE_BUTTON_CLASSES,
+    VARIANT_CLASSES[variant],
+    fullWidth && FULL_WIDTH_CLASS,
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <button
       type={type}
-      className={[
-        BASE_BUTTON_CLASSES,
-        VARIANT_CLASSES[variant],
-        fullWidth && FULL_WIDTH_CLASS,
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      {...props}
+      className={buttonClasses}
+      {...additionalProps}
     >
       {children}
     </button>
   )
 }
-export const Button = memo(ButtonComponent);
+export const Button = ButtonComponent;
